@@ -46,7 +46,8 @@ TESTS =
 
 pkgconfigdir = $(libdir)/pkgconfig
 #dist_pkgconfig_DATA = bdw-gc.pc
-dist_pkgconfig_DATA = gcroots.pc
+EXTRA_DIST += gcroots.pc.in
+pkgconfig_DATA = gcroots.pc
 
 #include include/include.am
 #include cord/cord.am
@@ -192,7 +193,7 @@ dist_noinst_SCRIPTS = configure.host
 # documentation which is not installed
 #
 #EXTRA_DIST += README.QUICK
-EXTRA_DIST += README COPYING
+EXTRA_DIST += README COPYING ChangeLog
 
 # other makefiles
 # :GOTCHA: deliberately we do not include 'Makefile'
@@ -221,6 +222,8 @@ CONFIG_STATUS_DEPENDENCIES = $(srcdir)/configure.host
 # :FIXME: why do we distribute this one???
 #
 #EXTRA_DIST += libtool.m4
+
+DISTCLEANFILES = gcroots.pc
 
 #
 # :GOTCHA: GNU make rule for making .s out of .S is flawed, 
