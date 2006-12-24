@@ -66,7 +66,7 @@ pkgconfig_DATA = gcroots.pc
 #	obj_map.c os_dep.c pcr_interface.c ptr_chck.c real_malloc.c reclaim.c \
 #	specific.c stubborn.c typd_mlc.c \
 #	backgraph.c thread_local_alloc.c
-pkginclude_HEADERS += include/gcroots.h
+include_HEADERS += include/gcroots.h
 dist_noinst_HEADERS += \
 	include/private/gcroots_priv.h \
 	include/gc.h \
