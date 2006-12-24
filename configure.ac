@@ -288,6 +288,8 @@ AC_SUBST(CXX)
 AC_SUBST(INCLUDES)
 AC_SUBST(CXXINCLUDES)
 
+AX_FUNC_GETCONTEXT
+
 # Configuration of shared libraries
 #
 AC_MSG_CHECKING(whether to build shared libraries)
@@ -597,7 +599,7 @@ dnl Produce the Files
 dnl -----------------
 
 dnl AC_CONFIG_FILES([Makefile bdw-gc.pc])
-AC_CONFIG_FILES([Makefile gcroots.pc])
+AC_CONFIG_FILES([Makefile gcroots.pc m4/Makefile])
 
 AC_CONFIG_COMMANDS([default],,
   [ srcdir=${srcdir}

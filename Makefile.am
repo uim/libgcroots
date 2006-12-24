@@ -33,7 +33,7 @@
 # endif
 SUBDIRS =
 
-SUBDIRS += .
+SUBDIRS += m4
 
 # Initialize variables so that we can declare files locally.
 EXTRA_DIST = 

@@ -160,7 +160,8 @@ void GC_push_regs()
 # undef HAVE_PUSH_REGS
 #endif
 
-#if !defined(HAVE_PUSH_REGS) && defined(UNIX_LIKE)
+#if !defined(HAVE_PUSH_REGS) && defined(UNIX_LIKE) && !defined(DARWIN)	     \
+    && HAVE_GETCONTEXT
 # include <ucontext.h>
 #endif
 
@@ -175,7 +176,7 @@ void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
 
 #   if defined(HAVE_PUSH_REGS)
       GC_push_regs();
-#   elif defined(UNIX_LIKE) && !defined(DARWIN)
+#   elif defined(UNIX_LIKE) && !defined(DARWIN) && HAVE_GETCONTEXT
       /* Older versions of Darwin seem to lack getcontext(). */
       ucontext_t ctxt;
       getcontext(&ctxt);
