@@ -1,0 +1,45 @@
+libgcroots
+==========
+
+About
+-----
+
+This library abstracts architecture-dependent part of garbage collector
+roots acquisition such as register windows of SPARC and register stack
+backing store of IA-64. Main part of the code is based on Boehm GC
+7.0alpha7.
+
+With this library, you can easily write your own garbage collector for
+small footprint, some application-specific optimizations, just learning or
+testing experimental ideas.
+
+
+Implementation Status
+---------------------
+
+This version only supports non-threaded execution contexts started with
+GCROOTS_call_with_gc_ready_stack(). i.e. Entire stack is not scanned at
+mark phase.
+
+Since SigScheme the main application of this library does not need both
+threading and scanning entire stack based on system-dependent absolute
+stack bottom, I don't have a plan to support these features. If you need
+them, please port the appropriate codes from Boehm GC. I would like to
+merge it.
+
+
+Author
+------
+
+YAMAMOTO Kengo / YamaKen  <yamaken AT bp.iij4u.or.jp>
+FAMILY   Given / Nick
+http://en.wikipedia.org/wiki/Japanese_name
+
+
+Thanks
+------
+
+Hans-J. Boehm and all authors of Boehm GC for the useful codes.
+
+Tanaka Akira for letting me realize about the GC problem through the
+presentation at Binary 2.0 Conference 2006.

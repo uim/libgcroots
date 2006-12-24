@@ -70,8 +70,10 @@ dist_noinst_HEADERS += \
 	include/private/gcroots_priv.h \
 	include/gc.h \
 	include/gc_mark.h \
-	include/gc_tiny_fl.h
+	include/gc_tiny_fl.h \
+	include/gc_config_macros.h \
 	include/private/gc_hdrs.h \
+	include/private/gc_locks.h \
 	include/private/gc_priv.h \
 	include/private/gcconfig.h
 lib_LTLIBRARIES += libgcroots.la
@@ -190,6 +192,7 @@ dist_noinst_SCRIPTS = configure.host
 # documentation which is not installed
 #
 #EXTRA_DIST += README.QUICK
+EXTRA_DIST += README COPYING
 
 # other makefiles
 # :GOTCHA: deliberately we do not include 'Makefile'
@@ -208,6 +211,7 @@ dist_noinst_SCRIPTS = configure.host
 #    Mac_files/MacOS_config.h Mac_files/MacOS_Test_config.h \
 #    include/private/msvc_dbg.h msvc_dbg.c
 # :CHECK: If pc_excludes still around, re-add to EXTRA_DIST.
+EXTRA_DIST += mach_dep.c
 
 
 # this is an auxiliary shell file used by Makefile and Makefile.direct
