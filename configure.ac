@@ -17,58 +17,60 @@ dnl Process this file with autoconf to produce configure.
 # Initialization
 # ==============
 
-AC_INIT(gc,6.8,Hans.Boehm@hp.com) 
+AC_INIT(gc,7.0alpha7,Hans.Boehm@hp.com) 
     ## version must conform to [0-9]+[.][0-9]+(alpha[0-9]+)?
 AC_CONFIG_SRCDIR(gcj_mlc.c)
 AC_CANONICAL_TARGET 
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.2 $)
+AC_REVISION($Revision: 1.14 $)
 GC_SET_VERSION
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign dist-bzip2 subdir-objects nostdinc])
+AM_MAINTAINER_MODE
 
 AC_SUBST(PACKAGE)
 AC_SUBST(GC_VERSION)
 
-AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_CXX
 
 AM_PROG_AS
+## FIXME: really needed? (AC_LIBTOOL already provides this)
 AC_CHECK_TOOL(AR, ar)
 AC_CHECK_TOOL(RANLIB, ranlib, :)  # :)
 
 AC_PROG_INSTALL
 
-AM_MAINTAINER_MODE
-
-. [$]{srcdir}/configure.host
+. ${srcdir}/configure.host
 
 GC_CFLAGS=${gc_cflags}
 AC_SUBST(GC_CFLAGS)
 
-AC_ARG_ENABLE(threads, [  --enable-threads=TYPE   choose threading package],
+AC_ARG_ENABLE(threads,
+  [AC_HELP_STRING([--enable-threads=TYPE], [choose threading package])],
   THREADS=$enableval,
   [ AC_MSG_CHECKING([for thread model used by GCC])
     THREADS=`$CC -v 2>&1 | sed -n 's/^Thread model: //p'`
     if test -z "$THREADS"; then
       THREADS=no
     fi
-    AC_MSG_RESULT([$THREADS])])
+    AC_MSG_RESULT([$THREADS]) ])
 
 AC_ARG_ENABLE(parallel-mark,
-[  --enable-parallel-mark	parallelize marking and free list construction],
+   [AC_HELP_STRING([--enable-parallel-mark],
+	[parallelize marking and free list construction])],
    [case "$THREADS" in
       no | none | single)
 	AC_MSG_ERROR([Parallel mark requires --enable-threads=x spec])
 	;;
-    esac]
+    esac ]
 )
 
 AC_ARG_ENABLE(cplusplus,
-[  --enable-cplusplus		install C++ support],
-)
+    [AC_HELP_STRING([--enable-cplusplus], [install C++ support])])
 
 INCLUDES=-I${srcdir}/include
 THREADDLLIBS=
+need_atomic_ops_asm=false
 ## Libraries needed to support dynamic loading and/or threads.
 case "$THREADS" in
  no | none | single)
@@ -85,6 +87,7 @@ case "$THREADS" in
 	  AC_DEFINE(PARALLEL_MARK)
 	fi
 	AC_DEFINE(THREAD_LOCAL_ALLOC)
+	AC_MSG_WARN("Explict GC_INIT() calls may be required.");
 	;;
      *-*-linux*)
 	AC_DEFINE(GC_LINUX_THREADS)
@@ -95,17 +98,18 @@ case "$THREADS" in
 	AC_DEFINE(_REENTRANT)
 	;;
      *-*-hpux11*)
-	AC_MSG_WARN("Only HP-UX 11 POSIX threads are supported.")
+	AC_MSG_WARN("Only HP/UX 11 POSIX threads are supported.")
 	AC_DEFINE(GC_HPUX_THREADS)
 	AC_DEFINE(_POSIX_C_SOURCE,199506L)
 	if test "${enable_parallel_mark}" = yes; then
 	  AC_DEFINE(PARALLEL_MARK)
 	fi
 	AC_DEFINE(THREAD_LOCAL_ALLOC)
+	AC_MSG_WARN("Explict GC_INIT() calls may be required.");
 	THREADDLLIBS="-lpthread -lrt"
 	# HPUX needs REENTRANT for the _r calls.
 	AC_DEFINE(_REENTRANT, 1, [Required define if using POSIX threads])
- 	;;
+	;;
      *-*-hpux10*)
 	AC_MSG_WARN("Only HP-UX 11 POSIX threads are supported.")
 	;;
@@ -113,7 +117,6 @@ case "$THREADS" in
 	AC_MSG_WARN("FreeBSD does not yet fully support threads with Boehm GC.")
 	AC_DEFINE(GC_FREEBSD_THREADS)
 	INCLUDES="$INCLUDES -pthread"
-	THREADDLLIBS=-pthread
       	;;
      *-*-kfreebsd*-gnu)
 	AC_DEFINE(GC_FREEBSD_THREADS)
@@ -135,26 +138,35 @@ case "$THREADS" in
 	;;
      *-*-solaris*)
 	AC_DEFINE(GC_SOLARIS_THREADS)
-	AC_DEFINE(GC_SOLARIS_PTHREADS)
+	AC_DEFINE(THREAD_LOCAL_ALLOC)
+	THREADDLLIBS="-lpthread -lrt"
+	if test "$GCC" != yes; then
+          CFLAGS="$CFLAGS -O"
+          need_atomic_ops_asm=true
+        fi
 	;;
      *-*-irix*)
 	AC_DEFINE(GC_IRIX_THREADS)
 	;;
      *-*-cygwin*)
 	AC_DEFINE(GC_WIN32_THREADS)
+	win32_threads=true
 	;;
      *-*-darwin*)
 	AC_DEFINE(GC_DARWIN_THREADS)
 	AC_DEFINE(THREAD_LOCAL_ALLOC)
+	AC_MSG_WARN("Explict GC_INIT() calls may be required.");
 	if test "${enable_parallel_mark}" = yes; then
 	  AC_DEFINE(PARALLEL_MARK)
 	fi
+	darwin_threads=true
 	;;
      *-*-osf*)
 	AC_DEFINE(GC_OSF1_THREADS)
         if test "${enable_parallel_mark}" = yes; then
 	  AC_DEFINE(PARALLEL_MARK)
 	  AC_DEFINE(THREAD_LOCAL_ALLOC)
+	  AC_MSG_WARN("Explict GC_INIT() calls may be required.");
 	  # May want to enable it in other cases, too.
 	  # Measurements havent yet been done.
 	fi
@@ -180,6 +192,7 @@ case "$THREADS" in
         AC_DEFINE(PARALLEL_MARK)
     fi
     AC_DEFINE(THREAD_LOCAL_ALLOC)
+    AC_MSG_WARN("Explict GC_INIT() calls may be required.");
     AC_DEFINE(GC_DGUX386_THREADS)
     AC_DEFINE(DGUX_THREADS)
     # Enable _POSIX4A_DRAFT10_SOURCE with flag -pthread
@@ -199,13 +212,16 @@ case "$THREADS" in
     ;;
 esac
 AC_SUBST(THREADDLLIBS)
+AM_CONDITIONAL(THREADS, test x$THREADS != xnone)
+AM_CONDITIONAL(PTHREADS, test x$THREADS = xposix)
+AM_CONDITIONAL(DARWIN_THREADS, test x$darwin_threads = xtrue)
+AM_CONDITIONAL(WIN32_THREADS, test x$win32_threads = xtrue)
 
 case "$host" in 
    powerpc-*-darwin*)
       powerpc_darwin=true
       ;;
 esac
-AM_CONDITIONAL(POWERPC_DARWIN,test x$powerpc_darwin = xtrue)
 
 AC_MSG_CHECKING(for xlc)
 AC_TRY_COMPILE([],[
@@ -246,8 +262,6 @@ TARGET_ECOS="$with_ecos"
 
 addobjs=
 addlibs=
-addincludes=
-addtests=
 CXXINCLUDES=
 case "$TARGET_ECOS" in
    no)
@@ -258,11 +272,6 @@ case "$TARGET_ECOS" in
       addobjs="$addobjs ecos.lo"
       ;;
 esac
-
-if test "${enable_cplusplus}" = yes; then
-      addincludes="$addincludes include/gc_cpp.h include/gc_allocator.h"
-      addtests="$addtests test_cpp"
-fi
 
 AM_CONDITIONAL(CPLUSPLUS, test "${enable_cplusplus}" = yes)
 
@@ -292,42 +301,42 @@ AC_MSG_CHECKING(which machine-dependent code should be used)
 machdep=
 case "$host" in
  alpha-*-openbsd*)
-    machdep="alpha_mach_dep.lo"
+    machdep="mach_dep.lo"
     if test x"${ac_cv_lib_dl_dlopen}" != xyes ; then
        AC_MSG_WARN(OpenBSD/Alpha without dlopen(). Shared library support is disabled)
     fi
     ;;
  alpha*-*-linux*)
-    machdep="alpha_mach_dep.lo"
+    machdep="mach_dep.lo"
     ;;
  i?86-*-solaris2.[[89]] | i?86-*-solaris2.1?)
     AC_DEFINE(SOLARIS25_PROC_VDB_BUG_FIXED)
     ;;
  mipstx39-*-elf*)
-    machdep="mips_ultrix_mach_dep.lo"
+    machdep="mach_dep.lo"
     AC_DEFINE(STACKBASE, __stackbase)
     AC_DEFINE(DATASTART_IS_ETEXT)
     ;;
  mips-dec-ultrix*)
-    machdep="mips_ultrix_mach-dep.lo"
+    machdep="mach-dep.lo"
     ;;
  mips-nec-sysv*|mips-unknown-sysv*)
     ;;
  mips*-*-linux*) 
     ;; 
  mips-*-*)
-    machdep="mips_sgi_mach_dep.lo"
+    machdep="mach_dep.lo"
     AC_DEFINE(NO_EXECUTE_PERMISSION)
     ;;
  sparc-*-netbsd*)
-    machdep="sparc_netbsd_mach_dep.lo"
+    machdep="mach_dep.lo sparc_netbsd_mach_dep.lo"
     ;;
  sparc-sun-solaris2.3)
-    machdep="sparc_mach_dep.lo"
+    machdep="mach_dep.lo sparc_mach_dep.lo"
     AC_DEFINE(SUNOS53_SHARED_LIB)
     ;;
  sparc*-sun-solaris2.*)
-    machdep="sparc_mach_dep.lo"
+    machdep="mach_dep.lo sparc_mach_dep.lo"
     ;;
  ia64-*-*)
     machdep="mach_dep.lo ia64_save_regs_in_stack.lo"
@@ -339,9 +348,7 @@ AC_MSG_RESULT($machdep)
 fi
 addobjs="$addobjs $machdep"
 AC_SUBST(addobjs)
-AC_SUBST(addincludes)
 AC_SUBST(addlibs)
-AC_SUBST(addtests)
 
 AC_PROG_LIBTOOL
 
@@ -409,36 +416,81 @@ case "$host" in
  *) AC_MSG_RESULT(no) ;;
 esac
 
-dnl We need to override the top-level CFLAGS.  This is how we do it.
-MY_CFLAGS="$CFLAGS"
-AC_SUBST(MY_CFLAGS)
-
 dnl Include defines that have become de facto standard.
 dnl ALL_INTERIOR_POINTERS can be overridden in startup code.
-AC_DEFINE(SILENT)
-AC_DEFINE(NO_SIGNALS)
 AC_DEFINE(NO_EXECUTE_PERMISSION)
 AC_DEFINE(ALL_INTERIOR_POINTERS)
 
+
+dnl Interface Selection
+dnl -------------------
+dnl
 dnl By default, make the library as general as possible.
-AC_DEFINE(JAVA_FINALIZATION)
-AC_DEFINE(GC_GCJ_SUPPORT)
-AC_DEFINE(ATOMIC_UNCOLLECTABLE)
+dnl enable_gcj_support=no
+AC_ARG_ENABLE(gcj-support,
+    [AC_HELP_STRING([--disable-gcj-support],
+	[Disable support for gcj.])])
+AM_CONDITIONAL(ENABLE_GCJ_SUPPORT,
+    [test x"$enable_gcj_support" != xno])
+if test x"$enable_gcj_support" != xno; then
+    AC_DEFINE(GC_GCJ_SUPPORT, 1, [Define to include support for gcj])
+fi
+
+AC_ARG_ENABLE(java-finalization,
+    [AC_HELP_STRING([--disable-java-finalization],
+	[Disable support for java finalization.])])
+if test x"$enable_java_finalization" != xno; then
+    AC_DEFINE(JAVA_FINALIZATION)
+fi
+
+AC_ARG_ENABLE(atomic-uncollectable,
+    [AC_HELP_STRING([--disable-atomic-uncollectible],
+	[Disable support for atomic uncollectible allocation.])])
+if test x"$enable_atomic_uncollectible" != x"no"; then
+    AC_DEFINE(ATOMIC_UNCOLLECTABLE, 1,
+	[Define to enable atomic uncollectible allocation.])
+fi
+
+AC_ARG_ENABLE(redirect-malloc,
+    [AC_HELP_STRING([--enable-redirect-malloc],
+	[Redirect malloc and friends to GC routines])])
+
+if test "${enable_redirect_malloc}" = yes; then
+    if test "${enable_full_debug}" = yes; then
+	AC_DEFINE(REDIRECT_MALLOC, GC_debug_malloc_replacement)
+	AC_DEFINE(REDIRECT_REALLOC, GC_debug_realloc_replacement)
+	AC_DEFINE(REDIRECT_FREE, GC_debug_free)
+    else
+	AC_DEFINE(REDIRECT_MALLOC, GC_malloc)
+    fi
+fi
+
+AC_ARG_ENABLE(large-config,
+    [AC_HELP_STRING([--enable-large-config],
+	[Optimize for large (> 100 MB) heap or root set])])
+
+if test "${enable_large_config}" = yes; then
+    AC_DEFINE(LARGE_CONFIG, 1, [Define to optimize for large heaps or root sets])
+fi
 
 dnl This is something of a hack.  When cross-compiling we turn off
 dnl some functionality.  We also enable the "small" configuration.
 dnl These is only correct when targetting an embedded system.  FIXME.
 if test -n "${with_cross_host}"; then
-   AC_DEFINE(NO_SIGSET)
    AC_DEFINE(NO_CLOCK)
    AC_DEFINE(SMALL_CONFIG)
    AC_DEFINE(NO_DEBUGGING)
 fi
 
+
+dnl Debugging
+dnl ---------
+
 UNWINDLIBS=
-AC_ARG_ENABLE(full-debug,
-[  --enable-full-debug	include full support for pointer backtracing etc.],
-[ if test "$enable_full_debug" = "yes"; then
+AC_ARG_ENABLE(gc-debug,
+[AC_HELP_STRING([--enable-gc-debug],
+    [include full support for pointer backtracing etc.])],
+[ if test "$enable_gc_debug" = "yes"; then
     AC_MSG_WARN("Should define GC_DEBUG and use debug alloc. in clients.")
     AC_DEFINE(KEEP_BACK_PTRS)
     AC_DEFINE(DBG_HDRS_ALL)
@@ -465,31 +517,78 @@ AC_ARG_ENABLE(full-debug,
 
 AC_SUBST(UNWINDLIBS)
 
-AC_ARG_ENABLE(redirect-malloc,
-[  --enable-redirect-malloc  redirect malloc and friends to GC routines])
-
-if test "${enable_redirect_malloc}" = yes; then
-    if test "${enable_full_debug}" = yes; then
-	AC_DEFINE(REDIRECT_MALLOC, GC_debug_malloc_replacement)
-	AC_DEFINE(REDIRECT_REALLOC, GC_debug_realloc_replacement)
-	AC_DEFINE(REDIRECT_FREE, GC_debug_free)
-    else
-	AC_DEFINE(REDIRECT_MALLOC, GC_malloc)
-    fi
-fi
-
 AC_ARG_ENABLE(gc-assertions,
-[  --enable-gc-assertions  collector-internal assertion checking])
+    [AC_HELP_STRING([--enable-gc-assertions],
+	[collector-internal assertion checking])])
 if test "${enable_gc_assertions}" = yes; then
     AC_DEFINE(GC_ASSERTIONS)
 fi
 
 AM_CONDITIONAL(USE_LIBDIR, test -z "$with_cross_host")
 
-AC_OUTPUT([Makefile doc/Makefile include/Makefile],,
-srcdir=${srcdir}
-host=${host}
-CONFIG_SHELL=${CONFIG_SHELL-/bin/sh}
-CC="${CC}"
-DEFS="$DEFS"
-)
+
+dnl Atomic Ops
+dnl ----------
+
+atomic_ops_libs=-latomic_ops
+AC_CHECK_HEADER(atomic_ops.h,
+  [ AC_MSG_NOTICE([Using pre-installed libatomic_ops]) ],
+  [ ao_dir=
+    for candidate in ${srcdir}/libatomic_ops*; do
+	case $candidate in
+	    *.tar.gz)
+		;;
+	    *install)
+	    	dnl generated by alternate Makefile.
+		;;
+	    *)
+		if test -e "$candidate"; then
+		    ao_dir="$candidate"
+		fi
+		;;
+	esac
+    done
+    if test -z "$ao_dir"; then
+	AC_MSG_ERROR([Missig libatomic_ops.])
+    fi
+    ao_version="${ao_dir#*libatomic_ops-}"
+    AC_MSG_NOTICE([Using internal version of libatomic_ops])
+
+    dnl Automake does not accept shell variables in AC_CONFIG_SUBDIRS
+    test -e ${srcdir}/libatomic_ops \
+	|| ln -s ${ao_dir} ${srcdir}/libatomic_ops
+    AC_CONFIG_SUBDIRS(libatomic_ops)
+
+    dnl Also copy the source files to be linked in.
+    test -e ${srcdir}/atomic_ops.c \
+    	|| ln -s ${srcdir}/libatomic_ops/src/atomic_ops.c \
+		 ${srcdir}/atomic_ops.c
+
+    test -e ${srcdir}/atomic_ops_sysdeps.S \
+    	|| ln -s ${srcdir}/libatomic_ops/src/atomic_ops_sysdeps.S \
+		 ${srcdir}/atomic_ops_sysdeps.S
+
+    dnl This gets the source include files, which is often close enough.
+    dnl It also makes atomic_ops_sysdeps.S assemble.
+    GC_CFLAGS="${GC_CFLAGS} -I \$(top_srcdir)/libatomic_ops/src"
+    maybe_libatomic_ops="libatomic_ops"
+  ])
+
+AM_CONDITIONAL(USE_INTERNAL_LIBATOMIC_OPS,
+		test -n "$maybe_libatomic_ops" -a "$THREADS" != "none")
+AM_CONDITIONAL(NEED_ATOMIC_OPS_ASM, test -n "$maybe_libatomic_ops" -a x$need_atomic_ops_asm = xtrue)
+AC_SUBST(atomic_ops_libs)
+
+dnl Produce the Files
+dnl -----------------
+
+AC_CONFIG_FILES([Makefile bdw-gc.pc])
+
+AC_CONFIG_COMMANDS([default],,
+  [ srcdir=${srcdir}
+    host=${host}
+    CONFIG_SHELL=${CONFIG_SHELL-/bin/sh}
+    CC="${CC}"
+    DEFS="$DEFS" ])
+
+AC_OUTPUT
