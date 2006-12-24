@@ -2,9 +2,9 @@
 
         .text
         .align  4
-        .globl  GC_push_regs
-        .ent    GC_push_regs 2
-GC_push_regs:
+        .globl  GCROOTS_push_regs
+        .ent    GCROOTS_push_regs 2
+GCROOTS_push_regs:
 	ldgp    $gp, 0($27)
 	lda     $sp, -16($sp)
 	stq     $26, 0($sp)
@@ -21,7 +21,7 @@ GC_push_regs:
 
 # define call_push(x)			\
 	mov   x, $16;			\
-	jsr   $26, GC_push_one;		\
+	jsr   $26, GCROOTS_push_one;		\
 	ldgp  $gp, 0($26)
 	
         call_push($9)
@@ -44,7 +44,7 @@ GC_push_regs:
 #undef call_push
 #define call_push(x)			\
 	ftoit	x, $16;			\
-	jsr	$26, GC_push_one;	\
+	jsr	$26, GCROOTS_push_one;	\
 	ldgp	$gp, 0($26)
 
 	call_push($f2)
@@ -67,7 +67,7 @@ $use_stack:
 #define call_push(x)			\
 	stt	x, 8($sp);		\
 	ldq	$16, 8($sp);		\
-	jsr	$26, GC_push_one;	\
+	jsr	$26, GCROOTS_push_one;	\
 	ldgp	$gp, 0($26)
 
 	call_push($f2)
@@ -83,4 +83,4 @@ $use_stack:
 	lda     $sp, 16($sp)
 	ret     $31, ($26), 1
 
-	.end    GC_push_regs
+	.end    GCROOTS_push_regs

@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libgcroots
+Description: Architecture-dependent part of GC roots acquisition separated from Boehm GC
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lgcroots
+Cflags: -I${includedir}

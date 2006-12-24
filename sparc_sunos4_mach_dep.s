@@ -5,17 +5,17 @@
 !	examined.
 
 	.seg 	"text"
-	.globl	_GC_save_regs_in_stack
-	.globl 	_GC_push_regs
-_GC_save_regs_in_stack:
-_GC_push_regs:
+	.globl	_GCROOTS_save_regs_in_stack
+	.globl 	_GCROOTS_push_regs
+_GCROOTS_save_regs_in_stack:
+_GCROOTS_push_regs:
 	ta	0x3   ! ST_FLUSH_WINDOWS
 	mov	%sp,%o0
 	retl
 	nop
 	
-	.globl	_GC_clear_stack_inner
-_GC_clear_stack_inner:
+	.globl	_GCROOTS_clear_stack_inner
+_GCROOTS_clear_stack_inner:
 	mov	%sp,%o2		! Save sp
 	add	%sp,-8,%o3	! p = sp-8
 	clr	%g1		! [g0,g1] = 0

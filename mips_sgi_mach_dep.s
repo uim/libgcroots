@@ -6,7 +6,7 @@
 /* assembler.  Hence we treat and name this file as though it required	*/
 /* no preprocessing.							*/
 
-# define call_push(x)     move    $4,x;    jal     GC_push_one
+# define call_push(x)     move    $4,x;    jal     GCROOTS_push_one
 
     .option pic2
     .text
@@ -14,13 +14,13 @@
 #   define FRAMESZ 32
 #   define RAOFF FRAMESZ-SZREG
 #   define GPOFF FRAMESZ-(2*SZREG)
-    NESTED(GC_push_regs, FRAMESZ, ra)
+    NESTED(GCROOTS_push_regs, FRAMESZ, ra)
     .mask 0x80000000,-SZREG	# inform debugger of saved ra loc
     move 	t0,gp
     SETUP_GPX(t8)
     PTR_SUBU	sp,FRAMESZ
 #   ifdef SETUP_GP64
-      SETUP_GP64(GPOFF, GC_push_regs)
+      SETUP_GP64(GPOFF, GCROOTS_push_regs)
 #   endif
     SAVE_GP(GPOFF)
     REG_S 	ra,RAOFF(sp)
@@ -43,4 +43,4 @@
 #   endif
     PTR_ADDU	sp,FRAMESZ
     j		ra
-    .end    GC_push_regs
+    .end    GCROOTS_push_regs

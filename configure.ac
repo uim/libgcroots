@@ -11,27 +11,30 @@
 #
 # Original author: Tom Tromey
 # Modified by: Grzegorz Jakacki <jakacki at acm dot org>
+# Modified by: YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp> (2006-12, libgcroots)
 
 dnl Process this file with autoconf to produce configure.
 
 # Initialization
 # ==============
 
-AC_INIT(gc,7.0alpha7,Hans.Boehm@hp.com) 
-    ## version must conform to [0-9]+[.][0-9]+(alpha[0-9]+)?
-AC_CONFIG_SRCDIR(gcj_mlc.c)
+dnl AC_INIT(gc,7.0alpha7,Hans.Boehm@hp.com) 
+dnl     ## version must conform to [0-9]+[.][0-9]+(alpha[0-9]+)?
+dnl AC_CONFIG_SRCDIR(gcj_mlc.c)
+AC_INIT([gcroots], 0.1.0, [uim@freedesktop.org], [libgcroots]) 
+AC_CONFIG_SRCDIR(include/private/gcroots_priv.h)
 AC_CANONICAL_TARGET 
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.14 $)
-GC_SET_VERSION
+dnl AC_REVISION($Revision: 1.14 $)
+dnl GC_SET_VERSION
 AM_INIT_AUTOMAKE([foreign dist-bzip2 subdir-objects nostdinc])
 AM_MAINTAINER_MODE
 
 AC_SUBST(PACKAGE)
-AC_SUBST(GC_VERSION)
+dnl AC_SUBST(GC_VERSION)
 
 AM_PROG_CC_C_O
-AC_PROG_CXX
+dnl AC_PROG_CXX
 
 AM_PROG_AS
 ## FIXME: really needed? (AC_LIBTOOL already provides this)
@@ -45,28 +48,32 @@ AC_PROG_INSTALL
 GC_CFLAGS=${gc_cflags}
 AC_SUBST(GC_CFLAGS)
 
-AC_ARG_ENABLE(threads,
-  [AC_HELP_STRING([--enable-threads=TYPE], [choose threading package])],
-  THREADS=$enableval,
-  [ AC_MSG_CHECKING([for thread model used by GCC])
-    THREADS=`$CC -v 2>&1 | sed -n 's/^Thread model: //p'`
-    if test -z "$THREADS"; then
-      THREADS=no
-    fi
-    AC_MSG_RESULT([$THREADS]) ])
+dnl AC_ARG_ENABLE(threads,
+dnl   [AC_HELP_STRING([--enable-threads=TYPE], [choose threading package])],
+dnl   THREADS=$enableval,
+dnl   [ AC_MSG_CHECKING([for thread model used by GCC])
+dnl     THREADS=`$CC -v 2>&1 | sed -n 's/^Thread model: //p'`
+dnl     if test -z "$THREADS"; then
+dnl       THREADS=no
+dnl     fi
+dnl     AC_MSG_RESULT([$THREADS]) ])
+enable_threads=no
+THREADS=no
 
-AC_ARG_ENABLE(parallel-mark,
-   [AC_HELP_STRING([--enable-parallel-mark],
-	[parallelize marking and free list construction])],
-   [case "$THREADS" in
-      no | none | single)
-	AC_MSG_ERROR([Parallel mark requires --enable-threads=x spec])
-	;;
-    esac ]
-)
+dnl AC_ARG_ENABLE(parallel-mark,
+dnl    [AC_HELP_STRING([--enable-parallel-mark],
+dnl 	[parallelize marking and free list construction])],
+dnl    [case "$THREADS" in
+dnl       no | none | single)
+dnl 	AC_MSG_ERROR([Parallel mark requires --enable-threads=x spec])
+dnl 	;;
+dnl     esac ]
+dnl )
+enable_parallel_mark=no
 
-AC_ARG_ENABLE(cplusplus,
-    [AC_HELP_STRING([--enable-cplusplus], [install C++ support])])
+dnl AC_ARG_ENABLE(cplusplus,
+dnl     [AC_HELP_STRING([--enable-cplusplus], [install C++ support])])
+enable_cplusplus=no
 
 INCLUDES=-I${srcdir}/include
 THREADDLLIBS=
@@ -247,7 +254,8 @@ esac
 
 AC_SUBST(EXTRA_TEST_LIBS)
 
-target_all=libgc.la
+dnl target_all=libgc.la
+target_all=libgcroots.la
 AC_SUBST(target_all)
 
 dnl If the target is an eCos system, use the appropriate eCos
@@ -427,33 +435,37 @@ dnl -------------------
 dnl
 dnl By default, make the library as general as possible.
 dnl enable_gcj_support=no
-AC_ARG_ENABLE(gcj-support,
-    [AC_HELP_STRING([--disable-gcj-support],
-	[Disable support for gcj.])])
+dnl AC_ARG_ENABLE(gcj-support,
+dnl     [AC_HELP_STRING([--disable-gcj-support],
+dnl 	[Disable support for gcj.])])
+enable_gcj_support=no
 AM_CONDITIONAL(ENABLE_GCJ_SUPPORT,
     [test x"$enable_gcj_support" != xno])
 if test x"$enable_gcj_support" != xno; then
     AC_DEFINE(GC_GCJ_SUPPORT, 1, [Define to include support for gcj])
 fi
 
-AC_ARG_ENABLE(java-finalization,
-    [AC_HELP_STRING([--disable-java-finalization],
-	[Disable support for java finalization.])])
+dnl AC_ARG_ENABLE(java-finalization,
+dnl     [AC_HELP_STRING([--disable-java-finalization],
+dnl 	[Disable support for java finalization.])])
+enable_java_finalization=no
 if test x"$enable_java_finalization" != xno; then
     AC_DEFINE(JAVA_FINALIZATION)
 fi
 
-AC_ARG_ENABLE(atomic-uncollectable,
-    [AC_HELP_STRING([--disable-atomic-uncollectible],
-	[Disable support for atomic uncollectible allocation.])])
+dnl AC_ARG_ENABLE(atomic-uncollectable,
+dnl     [AC_HELP_STRING([--disable-atomic-uncollectible],
+dnl 	[Disable support for atomic uncollectible allocation.])])
+enable_atomic_uncollectible=no
 if test x"$enable_atomic_uncollectible" != x"no"; then
     AC_DEFINE(ATOMIC_UNCOLLECTABLE, 1,
 	[Define to enable atomic uncollectible allocation.])
 fi
 
-AC_ARG_ENABLE(redirect-malloc,
-    [AC_HELP_STRING([--enable-redirect-malloc],
-	[Redirect malloc and friends to GC routines])])
+dnl AC_ARG_ENABLE(redirect-malloc,
+dnl     [AC_HELP_STRING([--enable-redirect-malloc],
+dnl 	[Redirect malloc and friends to GC routines])])
+enable_redirect_malloc=no
 
 if test "${enable_redirect_malloc}" = yes; then
     if test "${enable_full_debug}" = yes; then
@@ -465,9 +477,10 @@ if test "${enable_redirect_malloc}" = yes; then
     fi
 fi
 
-AC_ARG_ENABLE(large-config,
-    [AC_HELP_STRING([--enable-large-config],
-	[Optimize for large (> 100 MB) heap or root set])])
+dnl AC_ARG_ENABLE(large-config,
+dnl     [AC_HELP_STRING([--enable-large-config],
+dnl 	[Optimize for large (> 100 MB) heap or root set])])
+enable_large_config=no
 
 if test "${enable_large_config}" = yes; then
     AC_DEFINE(LARGE_CONFIG, 1, [Define to optimize for large heaps or root sets])
@@ -487,33 +500,34 @@ dnl Debugging
 dnl ---------
 
 UNWINDLIBS=
-AC_ARG_ENABLE(gc-debug,
-[AC_HELP_STRING([--enable-gc-debug],
-    [include full support for pointer backtracing etc.])],
-[ if test "$enable_gc_debug" = "yes"; then
-    AC_MSG_WARN("Should define GC_DEBUG and use debug alloc. in clients.")
-    AC_DEFINE(KEEP_BACK_PTRS)
-    AC_DEFINE(DBG_HDRS_ALL)
-    case $host in
-      ia64-*-linux* )
-	AC_DEFINE(MAKE_BACK_GRAPH)
-	AC_DEFINE(SAVE_CALL_COUNT, 8)
-        AC_CHECK_LIB(unwind, backtrace, [
-	  AC_DEFINE(GC_HAVE_BUILTIN_BACKTRACE)
-	  UNWINDLIBS=-lunwind
-	  AC_MSG_WARN("Client code may need to link against libunwind.")
-	])
-      ;;
-      x86-*-linux* | i586-*-linux* | i686-*-linux* | x86_64-*-linux* )
-	AC_DEFINE(MAKE_BACK_GRAPH)
-	AC_MSG_WARN("Client must not use -fomit-frame-pointer.")
-	AC_DEFINE(SAVE_CALL_COUNT, 8)
-      ;;
-      i[3456]86-*-dgux*)
-	AC_DEFINE(MAKE_BACK_GRAPH)
-      ;;
-    esac ]
-  fi)
+dnl AC_ARG_ENABLE(gc-debug,
+dnl [AC_HELP_STRING([--enable-gc-debug],
+dnl     [include full support for pointer backtracing etc.])],
+dnl [ if test "$enable_gc_debug" = "yes"; then
+dnl     AC_MSG_WARN("Should define GC_DEBUG and use debug alloc. in clients.")
+dnl     AC_DEFINE(KEEP_BACK_PTRS)
+dnl     AC_DEFINE(DBG_HDRS_ALL)
+dnl     case $host in
+dnl       ia64-*-linux* )
+dnl 	AC_DEFINE(MAKE_BACK_GRAPH)
+dnl 	AC_DEFINE(SAVE_CALL_COUNT, 8)
+dnl         AC_CHECK_LIB(unwind, backtrace, [
+dnl 	  AC_DEFINE(GC_HAVE_BUILTIN_BACKTRACE)
+dnl 	  UNWINDLIBS=-lunwind
+dnl 	  AC_MSG_WARN("Client code may need to link against libunwind.")
+dnl 	])
+dnl       ;;
+dnl       x86-*-linux* | i586-*-linux* | i686-*-linux* | x86_64-*-linux* )
+dnl 	AC_DEFINE(MAKE_BACK_GRAPH)
+dnl 	AC_MSG_WARN("Client must not use -fomit-frame-pointer.")
+dnl 	AC_DEFINE(SAVE_CALL_COUNT, 8)
+dnl       ;;
+dnl       i[3456]86-*-dgux*)
+dnl 	AC_DEFINE(MAKE_BACK_GRAPH)
+dnl       ;;
+dnl     esac ]
+dnl   fi)
+enable_gc_debug=no
 
 AC_SUBST(UNWINDLIBS)
 
@@ -531,48 +545,48 @@ dnl Atomic Ops
 dnl ----------
 
 atomic_ops_libs=-latomic_ops
-AC_CHECK_HEADER(atomic_ops.h,
-  [ AC_MSG_NOTICE([Using pre-installed libatomic_ops]) ],
-  [ ao_dir=
-    for candidate in ${srcdir}/libatomic_ops*; do
-	case $candidate in
-	    *.tar.gz)
-		;;
-	    *install)
-	    	dnl generated by alternate Makefile.
-		;;
-	    *)
-		if test -e "$candidate"; then
-		    ao_dir="$candidate"
-		fi
-		;;
-	esac
-    done
-    if test -z "$ao_dir"; then
-	AC_MSG_ERROR([Missig libatomic_ops.])
-    fi
-    ao_version="${ao_dir#*libatomic_ops-}"
-    AC_MSG_NOTICE([Using internal version of libatomic_ops])
-
-    dnl Automake does not accept shell variables in AC_CONFIG_SUBDIRS
-    test -e ${srcdir}/libatomic_ops \
-	|| ln -s ${ao_dir} ${srcdir}/libatomic_ops
-    AC_CONFIG_SUBDIRS(libatomic_ops)
-
-    dnl Also copy the source files to be linked in.
-    test -e ${srcdir}/atomic_ops.c \
-    	|| ln -s ${srcdir}/libatomic_ops/src/atomic_ops.c \
-		 ${srcdir}/atomic_ops.c
-
-    test -e ${srcdir}/atomic_ops_sysdeps.S \
-    	|| ln -s ${srcdir}/libatomic_ops/src/atomic_ops_sysdeps.S \
-		 ${srcdir}/atomic_ops_sysdeps.S
-
-    dnl This gets the source include files, which is often close enough.
-    dnl It also makes atomic_ops_sysdeps.S assemble.
-    GC_CFLAGS="${GC_CFLAGS} -I \$(top_srcdir)/libatomic_ops/src"
-    maybe_libatomic_ops="libatomic_ops"
-  ])
+dnl AC_CHECK_HEADER(atomic_ops.h,
+dnl   [ AC_MSG_NOTICE([Using pre-installed libatomic_ops]) ],
+dnl   [ ao_dir=
+dnl     for candidate in ${srcdir}/libatomic_ops*; do
+dnl 	case $candidate in
+dnl 	    *.tar.gz)
+dnl 		;;
+dnl 	    *install)
+dnl 	    	dnl generated by alternate Makefile.
+dnl 		;;
+dnl 	    *)
+dnl 		if test -e "$candidate"; then
+dnl 		    ao_dir="$candidate"
+dnl 		fi
+dnl 		;;
+dnl 	esac
+dnl     done
+dnl     if test -z "$ao_dir"; then
+dnl 	AC_MSG_ERROR([Missig libatomic_ops.])
+dnl     fi
+dnl     ao_version="${ao_dir#*libatomic_ops-}"
+dnl     AC_MSG_NOTICE([Using internal version of libatomic_ops])
+dnl 
+dnl     dnl Automake does not accept shell variables in AC_CONFIG_SUBDIRS
+dnl     test -e ${srcdir}/libatomic_ops \
+dnl 	|| ln -s ${ao_dir} ${srcdir}/libatomic_ops
+dnl     AC_CONFIG_SUBDIRS(libatomic_ops)
+dnl 
+dnl     dnl Also copy the source files to be linked in.
+dnl     test -e ${srcdir}/atomic_ops.c \
+dnl     	|| ln -s ${srcdir}/libatomic_ops/src/atomic_ops.c \
+dnl 		 ${srcdir}/atomic_ops.c
+dnl 
+dnl     test -e ${srcdir}/atomic_ops_sysdeps.S \
+dnl     	|| ln -s ${srcdir}/libatomic_ops/src/atomic_ops_sysdeps.S \
+dnl 		 ${srcdir}/atomic_ops_sysdeps.S
+dnl 
+dnl     dnl This gets the source include files, which is often close enough.
+dnl     dnl It also makes atomic_ops_sysdeps.S assemble.
+dnl     GC_CFLAGS="${GC_CFLAGS} -I \$(top_srcdir)/libatomic_ops/src"
+dnl     maybe_libatomic_ops="libatomic_ops"
+dnl   ])
 
 AM_CONDITIONAL(USE_INTERNAL_LIBATOMIC_OPS,
 		test -n "$maybe_libatomic_ops" -a "$THREADS" != "none")
@@ -582,7 +596,8 @@ AC_SUBST(atomic_ops_libs)
 dnl Produce the Files
 dnl -----------------
 
-AC_CONFIG_FILES([Makefile bdw-gc.pc])
+dnl AC_CONFIG_FILES([Makefile bdw-gc.pc])
+AC_CONFIG_FILES([Makefile gcroots.pc])
 
 AC_CONFIG_COMMANDS([default],,
   [ srcdir=${srcdir}

@@ -5,9 +5,9 @@
 !	examined.
 
 	.seg 	"text"
-	.globl	GC_save_regs_in_stack
-	.globl 	GC_push_regs
-GC_save_regs_in_stack:
+	.globl	GCROOTS_save_regs_in_stack
+	.globl 	GCROOTS_push_regs
+GCROOTS_save_regs_in_stack:
 #if defined(__arch64__) || defined(__sparcv9)
 	save	%sp,-128,%sp
 	flushw
@@ -19,16 +19,16 @@ GC_save_regs_in_stack:
 	retl
 	nop
 #endif /* 32 bit SPARC */
-.GC_save_regs_in_stack_end:
-	.size GC_save_regs_in_stack,.GC_save_regs_in_stack_end-GC_save_regs_in_stack
+.GCROOTS_save_regs_in_stack_end:
+	.size GCROOTS_save_regs_in_stack,.GCROOTS_save_regs_in_stack_end-GCROOTS_save_regs_in_stack
 	
 
-! GC_clear_stack_inner(arg, limit) clears stack area up to limit and
+! GCROOTS_clear_stack_inner(arg, limit) clears stack area up to limit and
 ! returns arg.  Stack clearing is crucial on SPARC, so we supply
 ! an assembly version that's more careful.  Assumes limit is hotter
 ! than sp, and limit is 8 byte aligned.	
-	.globl	GC_clear_stack_inner
-GC_clear_stack_inner:
+	.globl	GCROOTS_clear_stack_inner
+GCROOTS_clear_stack_inner:
 #if defined(__arch64__) || defined(__sparcv9)
 	mov %sp,%o2		! Save sp
 	add %sp,2047-8,%o3	! p = sp+bias-8
@@ -59,8 +59,8 @@ loop:
 	retl
 	  mov	%o2,%sp		! Restore sp., delay slot
 #endif  /* 32 bit SPARC */
-.GC_clear_stack_inner_end:
-      	.size GC_clear_stack_inner,.GC_clear_stack_inner_end-GC_clear_stack_inner
+.GCROOTS_clear_stack_inner_end:
+      	.size GCROOTS_clear_stack_inner,.GCROOTS_clear_stack_inner_end-GCROOTS_clear_stack_inner
 
 	
 		

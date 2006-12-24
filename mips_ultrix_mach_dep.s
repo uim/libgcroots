@@ -1,10 +1,10 @@
-# define call_push(x)     move    $4,x;    jal     GC_push_one
+# define call_push(x)     move    $4,x;    jal     GCROOTS_push_one
 
     .text
  # Mark from machine registers that are saved by C compiler
-    .globl  GC_push_regs
-    .ent    GC_push_regs
-GC_push_regs:
+    .globl  GCROOTS_push_regs
+    .ent    GCROOTS_push_regs
+GCROOTS_push_regs:
     subu    $sp,8       ## Need to save only return address
     sw      $31,4($sp)
     .mask   0x80000000,-4
@@ -23,4 +23,4 @@ GC_push_regs:
     lw      $31,4($sp)
     addu    $sp,8
     j       $31
-    .end    GC_push_regs
+    .end    GCROOTS_push_regs

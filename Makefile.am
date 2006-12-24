@@ -13,6 +13,7 @@
 # Severely truncated by Hans-J. Boehm
 # Modified by: Grzegorz Jakacki <jakacki at acm dot org>
 # Modified by: Petter Urkedal <petter.urkedal@nordita.dk> (2005-04)
+# Modified by: YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp> (2006-12, libgcroots)
 
 ## Process this file with automake to produce Makefile.in.
 
@@ -44,56 +45,77 @@ check_PROGRAMS =
 TESTS =
 
 pkgconfigdir = $(libdir)/pkgconfig
-dist_pkgconfig_DATA = bdw-gc.pc
+#dist_pkgconfig_DATA = bdw-gc.pc
+dist_pkgconfig_DATA = gcroots.pc
 
-include include/include.am
-include cord/cord.am
-include tests/tests.am
-include doc/doc.am
+#include include/include.am
+#include cord/cord.am
+#include tests/tests.am
+#include doc/doc.am
 
 
 # C Library
 # ---------
 
-lib_LTLIBRARIES += libgc.la
-libgc_la_SOURCES = \
-	allchblk.c alloc.c blacklst.c checksums.c dbg_mlc.c \
-	dyn_load.c finalize.c gc_dlopen.c gcj_mlc.c headers.c \
-	malloc.c mallocx.c mark.c mark_rts.c misc.c new_hblk.c \
-	obj_map.c os_dep.c pcr_interface.c ptr_chck.c real_malloc.c reclaim.c \
-	specific.c stubborn.c typd_mlc.c \
-	backgraph.c thread_local_alloc.c
+#lib_LTLIBRARIES += libgc.la
+#libgc_la_SOURCES = \
+#	allchblk.c alloc.c blacklst.c checksums.c dbg_mlc.c \
+#	dyn_load.c finalize.c gc_dlopen.c gcj_mlc.c headers.c \
+#	malloc.c mallocx.c mark.c mark_rts.c misc.c new_hblk.c \
+#	obj_map.c os_dep.c pcr_interface.c ptr_chck.c real_malloc.c reclaim.c \
+#	specific.c stubborn.c typd_mlc.c \
+#	backgraph.c thread_local_alloc.c
+pkginclude_HEADERS += include/gcroots.h
+dist_noinst_HEADERS += \
+	include/private/gcroots_priv.h \
+	include/gc.h \
+	include/gc_mark.h \
+	include/gc_tiny_fl.h
+	include/private/gc_hdrs.h \
+	include/private/gc_priv.h \
+	include/private/gcconfig.h
+lib_LTLIBRARIES += libgcroots.la
+libgcroots_la_SOURCES = mark.c gcroots.c
 
 # C Library: Architecture Dependent
 # ---------------------------------
 
-if PTHREADS
-libgc_la_SOURCES += pthread_support.c pthread_stop_world.c
-endif
-
-if DARWIN_THREADS
-libgc_la_SOURCES += darwin_stop_world.c
-endif
-
-if WIN32_THREADS
-libgc_la_SOURCES += win32_threads.c
-endif
-
-if USE_INTERNAL_LIBATOMIC_OPS
-libgc_la_SOURCES += atomic_ops.c
-endif
-
-if NEED_ATOMIC_OPS_ASM
-libgc_la_SOURCES += atomic_ops_sysdeps.S
-endif
+#if PTHREADS
+#libgc_la_SOURCES += pthread_support.c pthread_stop_world.c
+#endif
+#
+#if DARWIN_THREADS
+#libgc_la_SOURCES += darwin_stop_world.c
+#endif
+#
+#if WIN32_THREADS
+#libgc_la_SOURCES += win32_threads.c
+#endif
+#
+#if USE_INTERNAL_LIBATOMIC_OPS
+#libgc_la_SOURCES += atomic_ops.c
+#endif
+#
+#if NEED_ATOMIC_OPS_ASM
+#libgc_la_SOURCES += atomic_ops_sysdeps.S
+#endif
 
 # Include THREADDLLIBS here to ensure that the correct versions of
 # linuxthread semaphore functions get linked:
-libgc_la_LIBADD = @addobjs@ $(THREADDLLIBS) $(UNWINDLIBS)
-libgc_la_DEPENDENCIES = @addobjs@
-libgc_la_LDFLAGS = -version-info 1:2:0
+#libgc_la_LIBADD = @addobjs@ $(THREADDLLIBS) $(UNWINDLIBS)
+#libgc_la_DEPENDENCIES = @addobjs@
+#libgc_la_LDFLAGS = -version-info 1:2:0
 
-EXTRA_libgc_la_SOURCES = alpha_mach_dep.S \
+#EXTRA_libgc_la_SOURCES = alpha_mach_dep.S \
+#    mips_sgi_mach_dep.s mips_ultrix_mach_dep.s \
+#    rs6000_mach_dep.s sparc_mach_dep.S sparc_netbsd_mach_dep.s \
+#    sparc_sunos4_mach_dep.s ia64_save_regs_in_stack.s
+
+libgcroots_la_LIBADD = @addobjs@ $(THREADDLLIBS) $(UNWINDLIBS)
+libgcroots_la_DEPENDENCIES = @addobjs@
+libgcroots_la_LDFLAGS = -version-info 0:0:0
+
+EXTRA_libgcroots_la_SOURCES = alpha_mach_dep.S \
     mips_sgi_mach_dep.s mips_ultrix_mach_dep.s \
     rs6000_mach_dep.s sparc_mach_dep.S sparc_netbsd_mach_dep.s \
     sparc_sunos4_mach_dep.s ia64_save_regs_in_stack.s
@@ -102,18 +124,18 @@ EXTRA_libgc_la_SOURCES = alpha_mach_dep.S \
 # C++ Interface
 # -------------
 
-if CPLUSPLUS
-lib_LTLIBRARIES += libgccpp.la
-pkginclude_HEADERS += include/gc_cpp.h include/gc_allocator.h
-libgccpp_la_SOURCES = gc_cpp.cc
-libgccpp_la_LIBADD = $(THREADDLLIBS) $(UNWINDLIBS)
-libgccpp_la_LDFLAGS = -version-info 1:2:0
-endif
+#if CPLUSPLUS
+#lib_LTLIBRARIES += libgccpp.la
+#pkginclude_HEADERS += include/gc_cpp.h include/gc_allocator.h
+#libgccpp_la_SOURCES = gc_cpp.cc
+#libgccpp_la_LIBADD = $(THREADDLLIBS) $(UNWINDLIBS)
+#libgccpp_la_LDFLAGS = -version-info 1:2:0
+#endif
 
 # FIXME: If Visual C++ users use Makefile.am, this should go into
 # pkginclude_HEADERS with proper AM_CONDITIONALization.  Otherwise
 # delete this comment.
-EXTRA_DIST += gc_cpp.cpp
+#EXTRA_DIST += gc_cpp.cpp
 
 
 # Misc
@@ -155,35 +177,36 @@ endif
 
 CCASFLAGS += $(DEFS)
 
-dist_noinst_SCRIPTS = callprocs configure.host
+#dist_noinst_SCRIPTS = callprocs configure.host
+dist_noinst_SCRIPTS = configure.host
     ## callprocs --- used by Makefile.{dj,direct}
     ## configure.host --- used by Makefile.{am,dj,direct}
 
 # headers which are not installed
 # (see include/include.am for more)
 #
-dist_noinst_HEADERS += version.h
+#dist_noinst_HEADERS += version.h
 
 # documentation which is not installed
 #
-EXTRA_DIST += README.QUICK
+#EXTRA_DIST += README.QUICK
 
 # other makefiles
 # :GOTCHA: deliberately we do not include 'Makefile'
-EXTRA_DIST += BCC_MAKEFILE NT_MAKEFILE NT_THREADS_MAKEFILE \
-    OS2_MAKEFILE PCR-Makefile digimars.mak EMX_MAKEFILE	\
-    Makefile.direct Makefile.dj	Makefile.DLLs SMakefile.amiga \
-    WCC_MAKEFILE
+#EXTRA_DIST += BCC_MAKEFILE NT_MAKEFILE NT_THREADS_MAKEFILE \
+#    OS2_MAKEFILE PCR-Makefile digimars.mak EMX_MAKEFILE	\
+#    Makefile.direct Makefile.dj	Makefile.DLLs SMakefile.amiga \
+#    WCC_MAKEFILE
 
 # files used by makefiles other than Makefile.am
 #
-EXTRA_DIST += add_gc_prefix.c gcname.c if_mach.c if_not_there.c \
-    hpux_test_and_clear.s gc.mak MacOS.c \
-    MacProjects.sit.hqx mach_dep.c setjmp_t.c \
-    threadlibs.c AmigaOS.c \
-    Mac_files/datastart.c Mac_files/dataend.c \
-    Mac_files/MacOS_config.h Mac_files/MacOS_Test_config.h \
-    include/private/msvc_dbg.h msvc_dbg.c
+#EXTRA_DIST += add_gc_prefix.c gcname.c if_mach.c if_not_there.c \
+#    hpux_test_and_clear.s gc.mak MacOS.c \
+#    MacProjects.sit.hqx mach_dep.c setjmp_t.c \
+#    threadlibs.c AmigaOS.c \
+#    Mac_files/datastart.c Mac_files/dataend.c \
+#    Mac_files/MacOS_config.h Mac_files/MacOS_Test_config.h \
+#    include/private/msvc_dbg.h msvc_dbg.c
 # :CHECK: If pc_excludes still around, re-add to EXTRA_DIST.
 
 
@@ -193,7 +216,7 @@ CONFIG_STATUS_DEPENDENCIES = $(srcdir)/configure.host
 
 # :FIXME: why do we distribute this one???
 #
-EXTRA_DIST += libtool.m4
+#EXTRA_DIST += libtool.m4
 
 #
 # :GOTCHA: GNU make rule for making .s out of .S is flawed, 

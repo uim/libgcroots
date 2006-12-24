@@ -7,17 +7,17 @@
 #include "machine/asm.h"
 
 	.seg 	"text"
-	.globl	_C_LABEL(GC_save_regs_in_stack)
-	.globl 	_C_LABEL(GC_push_regs)
-_C_LABEL(GC_save_regs_in_stack):
-_C_LABEL(GC_push_regs):
+	.globl	_C_LABEL(GCROOTS_save_regs_in_stack)
+	.globl 	_C_LABEL(GCROOTS_push_regs)
+_C_LABEL(GCROOTS_save_regs_in_stack):
+_C_LABEL(GCROOTS_push_regs):
 	ta	0x3   ! ST_FLUSH_WINDOWS
 	mov	%sp,%o0
 	retl
 	nop
 	
-	.globl	_C_LABEL(GC_clear_stack_inner)
-_C_LABEL(GC_clear_stack_inner):
+	.globl	_C_LABEL(GCROOTS_clear_stack_inner)
+_C_LABEL(GCROOTS_clear_stack_inner):
 	mov	%sp,%o2		! Save sp
 	add	%sp,-8,%o3	! p = sp-8
 	clr	%g1		! [g0,g1] = 0

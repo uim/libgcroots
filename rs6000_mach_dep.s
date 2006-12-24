@@ -31,80 +31,80 @@
     .set   r30,30
     .set   r31,31
 
-    .extern .GC_push_one
+    .extern .GCROOTS_push_one
  # Mark from machine registers that are saved by C compiler
-    .globl  .GC_push_regs
+    .globl  .GCROOTS_push_regs
 .csect .text[PR]
     .align 2
-    .globl  GC_push_regs
-    .globl  .GC_push_regs
-.csect GC_push_regs[DS]
-GC_push_regs:
-    .long .GC_push_regs, TOC[tc0], 0
+    .globl  GCROOTS_push_regs
+    .globl  .GCROOTS_push_regs
+.csect GCROOTS_push_regs[DS]
+GCROOTS_push_regs:
+    .long .GCROOTS_push_regs, TOC[tc0], 0
 .csect .text[PR]
-.GC_push_regs:
+.GCROOTS_push_regs:
     stu	    r1,-64(r1)  # reserve stack frame
     mflr    r0		# save link register
     st      r0,0x48(r1)
     oril    r3,r2,0x0   # mark from r2
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r13,0x0   # mark from r13-r31
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r14,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r15,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r16,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r17,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r18,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r19,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r20,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r21,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r22,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r23,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r24,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r25,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r26,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r27,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r28,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r29,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r30,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     oril    r3,r31,0x0
-    bl 	    .GC_push_one
+    bl 	    .GCROOTS_push_one
     cror    15,15,15
     l       r0,0x48(r1)
     mtlr    r0
