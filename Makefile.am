@@ -193,7 +193,6 @@ dist_noinst_SCRIPTS = configure.host
 # documentation which is not installed
 #
 #EXTRA_DIST += README.QUICK
-EXTRA_DIST += README COPYING ChangeLog
 
 # other makefiles
 # :GOTCHA: deliberately we do not include 'Makefile'
