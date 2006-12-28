@@ -71,6 +71,8 @@ GCROOTS_init(GCROOTS_context_alloc_proc allocator, GCROOTS_mark_proc marker,
         n_pushed_regs = 0;
 #endif
     }
+
+    return ctx;
 }
 
 void
