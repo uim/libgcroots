@@ -229,7 +229,7 @@ CONFIG_STATUS_DEPENDENCIES = $(srcdir)/configure.host
 #
 #EXTRA_DIST += libtool.m4
 
-DISTCLEANFILES = gcroots.pc tools/gnuify-changelog.pl
+DISTCLEANFILES = gcroots.pc gnuify-changelog.pl
 
 #
 # :GOTCHA: GNU make rule for making .s out of .S is flawed, 
