@@ -21,10 +21,10 @@ dnl Process this file with autoconf to produce configure.
 dnl AC_INIT(gc,7.0alpha7,Hans.Boehm@hp.com) 
 dnl     ## version must conform to [0-9]+[.][0-9]+(alpha[0-9]+)?
 dnl AC_CONFIG_SRCDIR(gcj_mlc.c)
-AC_INIT([gcroots], 0.1.2, [uim@freedesktop.org], [libgcroots]) 
+AC_INIT([gcroots], [0.1.3], [uim@freedesktop.org], [libgcroots]) 
 AC_CONFIG_SRCDIR(include/private/gcroots_priv.h)
 AC_CANONICAL_TARGET 
-AC_PREREQ(2.53)
+AC_PREREQ(2.60b)
 dnl AC_REVISION($Revision: 1.14 $)
 dnl GC_SET_VERSION
 AM_INIT_AUTOMAKE([foreign dist-bzip2 subdir-objects nostdinc])
@@ -47,6 +47,27 @@ AC_PROG_INSTALL
 
 GC_CFLAGS=${gc_cflags}
 AC_SUBST(GC_CFLAGS)
+
+# FIXME: depending on the internal variable name
+AC_DEFUN([AX_LANG_WNOERROR], [ac_[]_AC_LANG_ABBREV[]_werror_flag=])
+
+AC_LANG_WERROR  # Turn warning-only unknown options into error.
+
+AX_CFLAGS_GCC_OPTION([-pedantic])
+AX_CFLAGS_GCC_OPTION([-Wall])
+AX_CFLAGS_GCC_OPTION([-Wchar-subscripts])
+AX_CFLAGS_GCC_OPTION([-Wmissing-declarations])
+AX_CFLAGS_GCC_OPTION([-Wredundant-decls])
+AX_CFLAGS_GCC_OPTION([-Wmissing-prototypes])
+AX_CFLAGS_GCC_OPTION([-Wnested-externs])
+AX_CFLAGS_GCC_OPTION([-Wpointer-arith])
+AX_CFLAGS_GCC_OPTION([-Wcast-align])
+AX_CFLAGS_GCC_OPTION([-Wsign-compare])
+
+# Disable the problematic preprocessing on Mac OS X
+AX_CFLAGS_GCC_OPTION([-no-cpp-precomp])
+
+AX_LANG_WNOERROR  # end AC_LANG_WERROR
 
 dnl AC_ARG_ENABLE(threads,
 dnl   [AC_HELP_STRING([--enable-threads=TYPE], [choose threading package])],
