@@ -17,6 +17,13 @@
 
 ## Process this file with automake to produce Makefile.in.
 
+UIM_REPOSITORY = http://anonsvn.freedesktop.org/svn/uim
+LIBGCROOTS_REPOSITORY = $(UIM_REPOSITORY)/libgcroots-trunk
+TAGS_REPOSITORY = $(UIM_REPOSITORY)/tags
+#RELEASE_URL     = $(LIBGCROOTS_REPOSITORY)
+RELEASE_URL     = $(TAGS_REPOSITORY)/$(PACKAGE)-$(VERSION)
+DIST_SUM_LIST = $(distdir).sum
+
 ## FIXME: `make distcheck' in this directory will not currently work.
 ##     This is most likely to the explicit flags passed to submakes.
 
@@ -222,10 +229,27 @@ CONFIG_STATUS_DEPENDENCIES = $(srcdir)/configure.host
 #
 #EXTRA_DIST += libtool.m4
 
-DISTCLEANFILES = gcroots.pc
+DISTCLEANFILES = gcroots.pc tools/gnuify-changelog.pl
 
 #
 # :GOTCHA: GNU make rule for making .s out of .S is flawed, 
 # it will not remove dest if building fails
 .S.s:
 	if $(CPP) $< >$@ ; then :; else rm -f $@; fi
+
+.PHONY: FORCE sum
+FORCE:
+
+ChangeLog: FORCE
+	svn export $(UIM_REPOSITORY)/trunk/tools/gnuify-changelog.pl
+	svn log $(RELEASE_URL) | ./gnuify-changelog.pl > $@
+	@test -s $@ && echo 'ChangeLog updated successfully.'
+
+sum: FORCE
+	$(MD5) $(DIST_ARCHIVES) >$(DIST_SUM_LIST)
+	$(SHA1) $(DIST_ARCHIVES) >>$(DIST_SUM_LIST)
+
+distclean-local:
+	if test '$(top_srcdir)' != '$(top_builddir)'; then      \
+	    rm -f ChangeLog;                                    \
+	fi
