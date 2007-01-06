@@ -43,6 +43,10 @@ struct _GCROOTS_context {
     GC_bool use_system_stack_bottom;
 };
 
+#if defined(SPARC) || defined(IA64)
+extern ptr_t GC_save_regs_ret_val;
+#endif
+
 #ifdef EXTRA_CONTEXT_IN_REGS
 static int n_pushed_regs;
 static word pushed_regs[PUSHED_REGS_SIZE];

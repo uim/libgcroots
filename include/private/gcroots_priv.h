@@ -16,8 +16,6 @@
 #ifndef _GCROOTS_PRIV_H
 #define _GCROOTS_PRIV_H
 
-#include "gcconfig.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,11 +31,6 @@ extern "C" {
 #define GC_clear_stack_inner        GCROOTS_clear_stack_inner
 #define GC_with_callee_saves_pushed GCROOTS_with_callee_saves_pushed
 #define GC_noop1                    GCROOTS_noop1
-
-
-#if defined(SPARC) || defined(IA64)
-extern ptr_t GC_save_regs_ret_val;
-#endif
 
 #ifdef __cplusplus
 }
