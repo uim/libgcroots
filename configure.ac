@@ -361,6 +361,7 @@ case "$host" in
     machdep="mach_dep.lo"
     AC_DEFINE(NO_EXECUTE_PERMISSION)
     ;;
+ # should be replaced with sparc_mach_dep.lo?
  sparc-*-netbsd*)
     machdep="mach_dep.lo sparc_netbsd_mach_dep.lo"
     ;;
@@ -369,6 +370,12 @@ case "$host" in
     AC_DEFINE(SUNOS53_SHARED_LIB)
     ;;
  sparc*-sun-solaris2.*)
+    machdep="mach_dep.lo sparc_mach_dep.lo"
+    ;;
+ sparc*-*-linux*)
+    machdep="mach_dep.lo sparc_mach_dep.lo"
+    ;;
+ sparc*-*-*)
     machdep="mach_dep.lo sparc_mach_dep.lo"
     ;;
  ia64-*-*)

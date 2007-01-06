@@ -16,17 +16,28 @@
 #ifndef _GCROOTS_PRIV_H
 #define _GCROOTS_PRIV_H
 
+#include "gcconfig.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define GC_save_regs_ret_val        GCROOTS_save_regs_ret_val
+#define GC_jmp_buf                  GCROOTS_jmp_buf
 
 #define GC_push_regs                GCROOTS_push_regs
 #define GC_push_one                 GCROOTS_push_one
 #define GC_push_current_stack       GCROOTS_push_current_stack
 #define GC_push_regs_and_stack      GCROOTS_push_regs_and_stack
+#define GC_save_regs_in_stack       GCROOTS_save_regs_in_stack
+#define GC_clear_stack_inner        GCROOTS_clear_stack_inner
 #define GC_with_callee_saves_pushed GCROOTS_with_callee_saves_pushed
 #define GC_noop1                    GCROOTS_noop1
-#define GC_jmp_buf                  GCROOTS_jmp_buf
+
+
+#if defined(SPARC) || defined(IA64)
+extern ptr_t GC_save_regs_ret_val;
+#endif
 
 #ifdef __cplusplus
 }
