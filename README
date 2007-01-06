@@ -13,6 +13,10 @@ With this library, you can easily write your own garbage collector for
 small footprint, some application-specific optimizations, just learning or
 testing experimental ideas.
 
+See this page for latest information.
+
+  http://uim.freedesktop.org/wiki/SigSchemeDownload
+
 
 Implementation Status
 ---------------------

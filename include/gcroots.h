@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp>
+ * Copyright (c) 2006-2007 YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp>
  * All rights reserved.
  * 
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
@@ -23,7 +23,7 @@ extern "C" {
 
 #define GCROOTS_VERSION_MAJOR      (0)
 #define GCROOTS_VERSION_MINOR      (1)
-#define GCROOTS_VERSION_PATCHLEVEL (3)
+#define GCROOTS_VERSION_PATCHLEVEL (4)
 #define GCROOTS_API_REVISION       (0)
 
 #define GCROOTS_VERSION_REQUIRE(major, minor, patchlevel)                    \
@@ -40,7 +40,7 @@ typedef void (*GCROOTS_mark_proc)(void *start, void *end,
 typedef void *(*GCROOTS_user_proc)(void *arg);
 typedef void *(*GCROOTS_context_alloc_proc)(size_t ctx_size);
 
-
+/* may return NULL */
 GCROOTS_context *GCROOTS_init(GCROOTS_context_alloc_proc allocator,
                               GCROOTS_mark_proc marker,
                               int scan_entire_system_stack);

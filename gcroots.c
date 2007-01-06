@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp>
+ * Copyright (c) 2006-2007 YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp>
  * All rights reserved.
  * 
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
@@ -134,7 +134,7 @@ GC_push_current_stack(ptr_t cold_gc_frame, void *context)
 
 #ifdef STACK_GROWS_DOWN
     (*ctx->mark)(&stack_top + 1, ctx->stack_base, FALSE, FALSE);
-#else    
+#else
     (*ctx->mark)(ctx->stack_base + 1, &stack_top, FALSE, FALSE);
 #endif
 

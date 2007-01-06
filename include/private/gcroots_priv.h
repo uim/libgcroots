@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp>
+ * Copyright (c) 2006-2007 YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp>
  * 
  * All rights reserved.
  * 
