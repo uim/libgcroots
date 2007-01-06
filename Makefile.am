@@ -21,7 +21,7 @@ UIM_REPOSITORY = http://anonsvn.freedesktop.org/svn/uim
 LIBGCROOTS_REPOSITORY = $(UIM_REPOSITORY)/libgcroots-trunk
 TAGS_REPOSITORY = $(UIM_REPOSITORY)/tags
 #RELEASE_URL     = $(LIBGCROOTS_REPOSITORY)
-RELEASE_URL     = $(TAGS_REPOSITORY)/$(PACKAGE)-$(VERSION)
+RELEASE_URL     = $(TAGS_REPOSITORY)/$(distdir)
 DIST_SUM_LIST = $(distdir).sum
 
 ## FIXME: `make distcheck' in this directory will not currently work.
