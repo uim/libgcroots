@@ -17,12 +17,15 @@
 
 ## Process this file with automake to produce Makefile.in.
 
+# $(distdir) does work as a part of $(RELEASE_URL) when configured as a
+# subpackage.
+DIST_NAME = $(PACKAGE)-$(VERSION)
 UIM_REPOSITORY = http://anonsvn.freedesktop.org/svn/uim
 LIBGCROOTS_REPOSITORY = $(UIM_REPOSITORY)/libgcroots-trunk
 TAGS_REPOSITORY = $(UIM_REPOSITORY)/tags
 #RELEASE_URL     = $(LIBGCROOTS_REPOSITORY)
-RELEASE_URL     = $(TAGS_REPOSITORY)/$(distdir)
-DIST_SUM_LIST = $(distdir).sum
+RELEASE_URL     = $(TAGS_REPOSITORY)/$(DIST_NAME)
+DIST_SUM_LIST = $(DIST_NAME).sum
 
 ## FIXME: `make distcheck' in this directory will not currently work.
 ##     This is most likely to the explicit flags passed to submakes.
