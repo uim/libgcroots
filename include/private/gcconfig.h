@@ -1632,7 +1632,7 @@
 	      __lfetch(__lfhint_nta,  (x))
 #	    define CLEAR_DOUBLE(x) \
 	      __stf_spill((void *)(x), 0)
-#	  endif // __INTEL_COMPILER
+#	  endif /* __INTEL_COMPILER */
 #       endif
 #   endif
 #   ifdef MSWIN32
