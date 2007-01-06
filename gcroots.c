@@ -139,7 +139,7 @@ GC_push_current_stack(ptr_t cold_gc_frame, void *context)
 #ifdef STACK_GROWS_DOWN
     (*ctx->mark)(&stack_top + 1, ctx->stack_base, FALSE, FALSE);
 #else
-    (*ctx->mark)(ctx->stack_base + 1, &stack_top, FALSE, FALSE);
+    (*ctx->mark)((word *)ctx->stack_base + 1, &stack_top, FALSE, FALSE);
 #endif
 
 #ifdef IA64
