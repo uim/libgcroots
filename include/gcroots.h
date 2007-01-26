@@ -22,9 +22,9 @@ extern "C" {
 #endif
 
 #define GCROOTS_VERSION_MAJOR      (0)
-#define GCROOTS_VERSION_MINOR      (1)
-#define GCROOTS_VERSION_PATCHLEVEL (4)
-#define GCROOTS_API_REVISION       (0)
+#define GCROOTS_VERSION_MINOR      (2)
+#define GCROOTS_VERSION_PATCHLEVEL (0)
+#define GCROOTS_API_REVISION       (1)
 
 #define GCROOTS_VERSION_REQUIRE(major, minor, patchlevel)                    \
   ((major) < GCROOTS_VERSION_MAJOR                                           \
@@ -51,6 +51,8 @@ void *GCROOTS_call_with_gc_ready_stack(GCROOTS_context *ctx,
                                        void *arg);
 void GCROOTS_mark(GCROOTS_context *ctx);
 
+int GCROOTS_is_protected(GCROOTS_context *ctx, void *obj);
+int GCROOTS_is_protected_context(GCROOTS_context *ctx);
 
 #ifdef __cplusplus
 }

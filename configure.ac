@@ -21,7 +21,7 @@ dnl Process this file with autoconf to produce configure.
 dnl AC_INIT(gc,7.0alpha7,Hans.Boehm@hp.com) 
 dnl     ## version must conform to [0-9]+[.][0-9]+(alpha[0-9]+)?
 dnl AC_CONFIG_SRCDIR(gcj_mlc.c)
-AC_INIT([gcroots], [0.1.4], [uim@freedesktop.org], [libgcroots]) 
+AC_INIT([gcroots], [0.2.0], [uim@freedesktop.org], [libgcroots]) 
 AC_CONFIG_SRCDIR(include/private/gcroots_priv.h)
 AC_CANONICAL_TARGET 
 AC_PREREQ(2.60b)
@@ -49,6 +49,9 @@ AC_PATH_PROGS(SHA1, sha1 sha1sum)
 
 GC_CFLAGS=${gc_cflags}
 AC_SUBST(GC_CFLAGS)
+
+AC_CHECK_SIZEOF(void *)
+AC_CHECK_ALIGNOF(void *)
 
 # FIXME: depending on the internal variable name
 AC_DEFUN([AX_LANG_WNOERROR], [ac_[]_AC_LANG_ABBREV[]_werror_flag=])
