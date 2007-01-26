@@ -135,6 +135,9 @@ GCROOTS_is_protected(GCROOTS_context *ctx, void *obj)
 {
     GCROOTS_context tmp_ctx;
 
+    if (!GCROOTS_is_protected_context(ctx))
+      return FALSE;
+
     tmp_ctx = *ctx;
     tmp_ctx.mark = find_obj; /* not actually a mark function */
     findee = obj;
