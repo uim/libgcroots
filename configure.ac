@@ -436,9 +436,10 @@ fi
 dnl As of 4.13a2, the collector will not properly work on Solaris when
 dnl built with gcc and -O.  So we remove -O in the appropriate case.
 dnl Not needed anymore on Solaris.
+dnl Needed on powerpc-apple-darwin7 for mach_dep.c.
 AC_MSG_CHECKING(whether Solaris gcc optimization fix is necessary)
 case "$host" in
- *aix*)
+ *aix* | powerpc-*-darwin7*)
     if test "$GCC" = yes; then
        AC_MSG_RESULT(yes)
        new_CFLAGS=
