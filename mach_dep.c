@@ -160,8 +160,7 @@ void GC_push_regs()
 # undef HAVE_PUSH_REGS
 #endif
 
-#if !defined(HAVE_PUSH_REGS) && defined(UNIX_LIKE) && !defined(DARWIN)	     \
-    && HAVE_GETCONTEXT
+#if !defined(HAVE_PUSH_REGS) && defined(UNIX_LIKE) && HAVE_GETCONTEXT
 # include <ucontext.h>
 #endif
 
@@ -176,7 +175,7 @@ void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
 
 #   if defined(HAVE_PUSH_REGS)
       GC_push_regs();
-#   elif defined(UNIX_LIKE) && !defined(DARWIN) && HAVE_GETCONTEXT
+#   elif defined(UNIX_LIKE) && HAVE_GETCONTEXT
       /* Older versions of Darwin seem to lack getcontext(). */
       ucontext_t ctxt;
       getcontext(&ctxt);
@@ -194,7 +193,7 @@ void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
       /* force callee-save registers and register windows onto	*/
       /* the stack.						*/
       __builtin_unwind_init();
-#   else /* !HAVE_BUILTIN_UNWIND_INIT && !UNIX_LIKE  */
+#   else /* !HAVE_BUILTIN_UNWIND_INIT && (!UNIX_LIKE || !HAVE_GETCONTEXT) */
          /* && !HAVE_PUSH_REGS			     */
         /* Generic code                          */
         /* The idea is due to Parag Patel at HP. */

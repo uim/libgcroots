@@ -17,6 +17,8 @@
 
 ## Process this file with automake to produce Makefile.in.
 
+include libtool-version.mk
+
 # $(distdir) does work as a part of $(RELEASE_URL) when configured as a
 # subpackage.
 DIST_NAME = $(PACKAGE)-$(VERSION)
@@ -126,7 +128,7 @@ libgcroots_la_SOURCES = mark.c gcroots.c
 
 libgcroots_la_LIBADD = @addobjs@ $(THREADDLLIBS) $(UNWINDLIBS)
 libgcroots_la_DEPENDENCIES = @addobjs@
-libgcroots_la_LDFLAGS = -version-info 0:0:0
+libgcroots_la_LDFLAGS = -version-info $(libgcroots_version)
 
 EXTRA_libgcroots_la_SOURCES = alpha_mach_dep.S \
     mips_sgi_mach_dep.s mips_ultrix_mach_dep.s \
