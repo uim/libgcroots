@@ -22,7 +22,7 @@ include libtool-version.mk
 # $(distdir) does work as a part of $(RELEASE_URL) when configured as a
 # subpackage.
 DIST_NAME = $(PACKAGE)-$(VERSION)
-UIM_REPOSITORY = http://anonsvn.freedesktop.org/svn/uim
+UIM_REPOSITORY = http://uim.googlecode.com/svn
 LIBGCROOTS_REPOSITORY = $(UIM_REPOSITORY)/libgcroots-trunk
 TAGS_REPOSITORY = $(UIM_REPOSITORY)/tags
 #RELEASE_URL     = $(LIBGCROOTS_REPOSITORY)
