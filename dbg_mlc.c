@@ -3,6 +3,7 @@
  * Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved.
  * Copyright (c) 1997 by Silicon Graphics.  All rights reserved.
  * Copyright (c) 1999-2004 Hewlett-Packard Development Company, L.P.
+ * Copyright (C) 2007 Free Software Foundation, Inc
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -301,8 +302,7 @@ ptr_t GC_store_debug_info_inner(ptr_t p, word sz, char *string, word integer)
 /* Check the object with debugging info at ohdr		*/
 /* return NIL if it's OK.  Else return clobbered	*/
 /* address.						*/
-ptr_t GC_check_annotated_obj(ohdr)
-register oh * ohdr;
+ptr_t GC_check_annotated_obj(oh *ohdr)
 {
     register ptr_t body = (ptr_t)(ohdr + 1);
     register word gc_sz = GC_size((ptr_t)ohdr);
@@ -325,17 +325,14 @@ register oh * ohdr;
 
 static GC_describe_type_fn GC_describe_type_fns[MAXOBJKINDS] = {0};
 
-void GC_register_describe_type_fn(kind, fn)
-int kind;
-GC_describe_type_fn fn;
+void GC_register_describe_type_fn(int kind, GC_describe_type_fn fn)
 {
   GC_describe_type_fns[kind] = fn;
 }
 
 /* Print a type description for the object whose client-visible address	*/
 /* is p.								*/
-void GC_print_type(p)
-ptr_t p;
+void GC_print_type(ptr_t p)
 {
     hdr * hhdr = GC_find_header(p);
     char buffer[GC_TYPE_DESCR_LEN + 1];
@@ -376,8 +373,7 @@ ptr_t p;
 
     
 
-void GC_print_obj(p)
-ptr_t p;
+void GC_print_obj(ptr_t p)
 {
     register oh * ohdr = (oh *)GC_base(p);
     
@@ -608,13 +604,11 @@ void * GC_debug_malloc_stubborn(size_t lb, GC_EXTRA_PARAMS)
     return GC_debug_malloc(lb, OPT_RA s, i);
 }
 
-void GC_debug_change_stubborn(p)
-void * p;
+void GC_debug_change_stubborn(void *p)
 {
 }
 
-void GC_debug_end_stubborn_change(p)
-void * p;
+void GC_debug_end_stubborn_change(void *p)
 {
 }
 
@@ -861,7 +855,7 @@ void GC_check_heap_block(struct hblk *hbp, word dummy)
 {
     struct hblkhdr * hhdr = HDR(hbp);
     size_t sz = hhdr -> hb_sz;
-    int bit_no;
+    size_t bit_no;
     char *p, *plim;
     
     p = hbp->hb_body;
@@ -991,7 +985,32 @@ void GC_debug_register_finalizer_no_order
 				     &my_old_cd);
     }
     store_old(obj, my_old_fn, (struct closure *)my_old_cd, ofn, ocd);
- }
+}
+
+void GC_debug_register_finalizer_unreachable
+    				    (void * obj, GC_finalization_proc fn,
+    				     void * cd, GC_finalization_proc *ofn,
+				     void * *ocd)
+{
+    GC_finalization_proc my_old_fn;
+    void * my_old_cd;
+    ptr_t base = GC_base(obj);
+    if (0 == base) return;
+    if ((ptr_t)obj - base != sizeof(oh)) {
+        GC_err_printf(
+	    "GC_debug_register_finalizer_unreachable called with "
+	    "non-base-pointer %p\n",
+	    obj);
+    }
+    if (0 == fn) {
+      GC_register_finalizer_unreachable(base, 0, 0, &my_old_fn, &my_old_cd);
+    } else {
+      GC_register_finalizer_unreachable(base, GC_debug_invoke_finalizer,
+    			    	        GC_make_closure(fn,cd), &my_old_fn,
+				        &my_old_cd);
+    }
+    store_old(obj, my_old_fn, (struct closure *)my_old_cd, ofn, ocd);
+}
 
 void GC_debug_register_finalizer_ignore_self
     				    (void * obj, GC_finalization_proc fn,

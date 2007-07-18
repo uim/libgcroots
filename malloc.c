@@ -64,7 +64,7 @@ ptr_t GC_alloc_large(size_t lb, int k, unsigned flags)
     if (h == 0) {
 	result = 0;
     } else {
-	int total_bytes = n_blocks * HBLKSIZE;
+	size_t total_bytes = n_blocks * HBLKSIZE;
 	if (n_blocks > 1) {
 	    GC_large_allocd_bytes += total_bytes;
 	    if (GC_large_allocd_bytes > GC_max_large_allocd_bytes)
@@ -413,7 +413,7 @@ void GC_free(void * p)
     GC_ASSERT(GC_base(p) == p);
 #   if defined(REDIRECT_MALLOC) && \
 	(defined(GC_SOLARIS_THREADS) || defined(GC_LINUX_THREADS) \
-	 || defined(__MINGW32__)) /* Should this be MSWIN32 in general? */
+	 || defined(MSWIN32))
 	/* For Solaris, we have to redirect malloc calls during		*/
 	/* initialization.  For the others, this seems to happen 	*/
  	/* implicitly.							*/

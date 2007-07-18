@@ -36,7 +36,9 @@
 
 #include "../test_and_set_t_is_char.h"
 
-#include <winbase.h>
+#include <windows.h>
+	/* Seems like over-kill, but that's what MSDN recommends.	*/
+	/* And apparently winbase.h is not always self-contained.	*/
 
 #if _MSC_VER < 1310
 
@@ -80,6 +82,12 @@ LONG __cdecl _InterlockedCompareExchange(LONG volatile* Dest,
 /* As far as we can tell, the lfence and sfence instructions are not	*/
 /* currently needed or useful for cached memory accesses.		*/
 
+/* Unfortunately mfence doesn't exist everywhere. 		*/
+/* IsProcessorFeaturePresent(PF_COMPARE_EXCHANGE128) is		*/
+/* probably a conservative test for it?				*/
+
+#if defined(AO_USE_PENTIUM4_INSTRS)
+
 AO_INLINE void
 AO_nop_full()
 {
@@ -87,6 +95,14 @@ AO_nop_full()
 }
 
 #define AO_HAVE_nop_full
+
+#else
+
+/* We could use the cpuid instruction.  But that seems to be slower 	*/
+/* than the default implementation based on test_and_set_full.  Thus	*/
+/* we omit that bit of misinformation here.				*/
+
+#endif
 
 AO_INLINE AO_t
 AO_fetch_and_add_full (volatile AO_t *p, AO_t incr)
@@ -139,6 +155,8 @@ AO_compare_and_swap_full(volatile AO_t *addr,
 #define AO_HAVE_compare_and_swap_full
 #endif /* ASSUME_WINDOWS98 */
 
-#ifndef _WIN64
-#include "../ao_t_is_int.h"
+#ifdef _WIN64
+#  error wrong architecture
 #endif
+
+#include "../ao_t_is_int.h"

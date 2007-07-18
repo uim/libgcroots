@@ -115,7 +115,7 @@ sem_t GC_suspend_ack_sem;
 
 void GC_suspend_handler_inner(ptr_t sig_arg, void *context);
 
-#if defined(IA64) || defined(HP_PA)
+#if defined(IA64) || defined(HP_PA) || defined(M68K)
 void GC_suspend_handler(int sig, siginfo_t *info, void *context)
 {
   int old_errno = errno;
@@ -242,6 +242,7 @@ void GC_restart_handler(int sig)
 void GC_push_all_stacks()
 {
     GC_bool found_me = FALSE;
+    size_t nthreads = 0;
     int i;
     GC_thread p;
     ptr_t lo, hi;
@@ -256,7 +257,8 @@ void GC_push_all_stacks()
     for (i = 0; i < THREAD_TABLE_SZ; i++) {
       for (p = GC_threads[i]; p != 0; p = p -> next) {
         if (p -> flags & FINISHED) continue;
-        if (pthread_equal(p -> id, me)) {
+	++nthreads;
+        if (THREAD_EQUAL(p -> id, me)) {
 #  	    ifdef SPARC
 	        lo = (ptr_t)GC_save_regs_in_stack();
 #  	    else
@@ -292,7 +294,7 @@ void GC_push_all_stacks()
             GC_printf("Reg stack for thread 0x%x = [%lx,%lx)\n",
     	              (unsigned)p -> id, bs_lo, bs_hi);
 #	  endif
-          if (pthread_equal(p -> id, me)) {
+          if (THREAD_EQUAL(p -> id, me)) {
 	    /* FIXME:  This may add an unbounded number of entries,	*/
 	    /* and hence overflow the mark stack, which is bad.		*/
 	    GC_push_all_eager(bs_lo, bs_hi);
@@ -301,6 +303,9 @@ void GC_push_all_stacks()
 	  }
 #	endif
       }
+    }
+    if (GC_print_stats == VERBOSE) {
+	GC_log_printf("Pushed %d thread stacks\n", nthreads);
     }
     if (!found_me && !GC_in_thread_creation)
       ABORT("Collecting from unknown thread.");
@@ -326,7 +331,7 @@ int GC_suspend_all()
     GC_stopping_pid = getpid();                /* debugging only.      */
     for (i = 0; i < THREAD_TABLE_SZ; i++) {
       for (p = GC_threads[i]; p != 0; p = p -> next) {
-        if (p -> id != my_thread) {
+        if (!THREAD_EQUAL(p -> id, my_thread)) {
             if (p -> flags & FINISHED) continue;
             if (p -> stop_info.last_stop_count == GC_stop_count) continue;
 	    if (p -> thread_blocked) /* Will wait */ continue;
@@ -446,7 +451,7 @@ void GC_start_world()
     AO_store(&GC_world_is_stopped, FALSE);
     for (i = 0; i < THREAD_TABLE_SZ; i++) {
       for (p = GC_threads[i]; p != 0; p = p -> next) {
-        if (p -> id != my_thread) {
+        if (!THREAD_EQUAL(p -> id, my_thread)) {
             if (p -> flags & FINISHED) continue;
 	    if (p -> thread_blocked) continue;
             n_live_threads++;

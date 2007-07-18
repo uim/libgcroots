@@ -22,7 +22,7 @@
 #if defined(USE_COMPILER_TLS)
   __thread
 #elif defined(USE_WIN32_COMPILER_TLS)
-  declspec(thread)
+  __declspec(thread)
 #endif
 GC_key_t GC_thread_key;
 
@@ -53,7 +53,6 @@ static void return_single_freelist(void *fl, void **gfl)
 static void return_freelists(void **fl, void **gfl)
 {
     int i;
-    void *q, **qptr;
 
     for (i = 1; i < TINY_FREELISTS; ++i) {
 	if ((word)(fl[i]) >= HBLKSIZE) {
@@ -125,13 +124,13 @@ void GC_destroy_thread_local(GC_tlfs p)
 #   endif
 }
 
-#if defined(GC_ASSERTIONS) && defined(GC_PTHREADS) && !defined(CYGWIN32)
+#if defined(GC_ASSERTIONS) && defined(GC_PTHREADS) && !defined(CYGWIN32) \
+    && !defined(GC_WIN32_PTHREADS)
 # include <pthread.h>
   extern char * GC_lookup_thread(pthread_t id);
 #endif
 
 #if defined(GC_ASSERTIONS) && defined(GC_WIN32_THREADS)
-# include <pthread.h>
   extern char * GC_lookup_thread(int id);
 #endif
 
@@ -151,6 +150,7 @@ void * GC_malloc(size_t bytes)
       }
       tsd = GC_getspecific(k);
 #   else
+      GC_ASSERT(GC_is_initialized);
       tsd = GC_getspecific(GC_thread_key);
 #   endif
 #   if defined(REDIRECT_MALLOC) && defined(USE_PTHREAD_SPECIFIC)
@@ -182,7 +182,10 @@ void * GC_malloc_atomic(size_t bytes)
 {
     size_t granules = ROUNDED_UP_GRANULES(bytes);
     void *result;
-    void **tiny_fl = ((GC_tlfs)GC_getspecific(GC_thread_key))
+    void **tiny_fl;
+
+    GC_ASSERT(GC_is_initialized);
+    tiny_fl = ((GC_tlfs)GC_getspecific(GC_thread_key))
 		        		-> ptrfree_freelists;
     GC_FAST_MALLOC_GRANS(result, bytes, tiny_fl, DIRECT_GRANULES,
 		         PTRFREE, GC_core_malloc_atomic(bytes), 0/* no init */);

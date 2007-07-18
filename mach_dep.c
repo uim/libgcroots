@@ -174,10 +174,12 @@ void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
 
 #   if defined(HAVE_PUSH_REGS)
       GC_push_regs();
-#   elif defined(UNIX_LIKE) && !defined(DARWIN)
+#   elif defined(UNIX_LIKE) && !defined(DARWIN) && !defined(ARM32)
       /* Older versions of Darwin seem to lack getcontext(). */
+      /* ARM Linux often doesn't support a real getcontext(). */
       ucontext_t ctxt;
-      getcontext(&ctxt);
+      if (getcontext(&ctxt) < 0)
+	ABORT ("Getcontext failed: Use another register retrieval method?");
       context = &ctxt;
 #     if defined(SPARC) || defined(IA64)
         /* On a register window machine, we need to save register	*/
@@ -224,8 +226,7 @@ void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
     GC_noop1((word)(&dummy));
 }
 
-void GC_push_regs_and_stack(cold_gc_frame)
-ptr_t cold_gc_frame;
+void GC_push_regs_and_stack(ptr_t cold_gc_frame)
 {
     GC_with_callee_saves_pushed(GC_push_current_stack, cold_gc_frame);
 }

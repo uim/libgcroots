@@ -295,8 +295,10 @@
 #   if defined(__ppc__)  || defined(__ppc64__)
 #    define POWERPC
 #    define mach_type_known
-#   endif
-#   if defined(__i386__)
+#   elif defined(__x86_64__)
+#    define X86_64
+#    define mach_type_known
+#   elif defined(__i386__)
 #    define I386
 #    define mach_type_known
 #   endif
@@ -320,6 +322,10 @@
 #   define I386
 #   define mach_type_known
 # endif
+# if defined(FREEBSD) && defined(__x86_64__)
+#   define X86_64
+#   define mach_type_known
+# endif
 # if defined(__NetBSD__) && (defined(i386) || defined(__i386__))
 #   define I386
 #   define mach_type_known
@@ -331,7 +337,7 @@
 # if defined(FREEBSD) && defined(__sparc__)
 #    define SPARC
 #    define mach_type_known
-#endif
+# endif
 # if defined(bsdi) && (defined(i386) || defined(__i386__))
 #    define I386
 #    define BSDI
@@ -368,8 +374,12 @@
 # else
 #   if (defined(_MSDOS) || defined(_MSC_VER)) && (_M_IX86 >= 300) \
         || defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__)
-#     define I386
-#     define MSWIN32	/* or Win32s */
+#     if defined(__LP64__) || defined(_WIN64)
+#	define X86_64
+#     else
+#       define I386
+#     endif
+#     define MSWIN32	/* or Win64 */
 #     define mach_type_known
 #   endif
 #   if defined(_MSC_VER) && defined(_M_IA64)
@@ -460,7 +470,7 @@
 /* SYSV on an M68K actually means A/UX.					*/
 /* The distinction in these cases is usually the stack starting address */
 # ifndef mach_type_known
-	--> unknown machine type
+#   error "The collector has not been ported to this machine/OS combination."
 # endif
 		    /* Mapping is: M68K       ==> Motorola 680X0	*/
 		    /*		   (NEXT, and SYSV (A/UX),		*/
@@ -659,8 +669,8 @@
 #   endif
 #   ifdef LINUX
 #       define OS_TYPE "LINUX"
-#       define STACKBOTTOM ((ptr_t)0xf0000000)
-/* #       define MPROTECT_VDB - Reported to not work  9/17/01 */
+#       define LINUX_STACKBOTTOM
+#       define MPROTECT_VDB
 #       ifdef __ELF__
 #            define DYNAMIC_LOADING
 #	     include <features.h>
@@ -742,24 +752,27 @@
 #     define DATAEND (_end)
 #   endif
 #   ifdef DARWIN
-#     ifdef __ppc64__
-#       define ALIGNMENT 8
-#       define CPP_WORDSZ 64
-#     else
-#       define ALIGNMENT 4
-#     endif
 #     define OS_TYPE "DARWIN"
 #     define DYNAMIC_LOADING
+#     if defined(__ppc64__)
+#       define ALIGNMENT 8
+#       define CPP_WORDSZ 64
+#       define STACKBOTTOM ((ptr_t) 0x7fff5fc00000)
+#       define CACHE_LINE_SIZE 64
+#       ifndef HBLKSIZE
+#         define HBLKSIZE 4096
+#       endif
+#     else
+#       define ALIGNMENT 4
+#       define STACKBOTTOM ((ptr_t) 0xc0000000)
+#     endif
       /* XXX: see get_end(3), get_etext() and get_end() should not be used.
-         These aren't used when dyld support is enabled (it is by default) */
+	 These aren't used when dyld support is enabled (it is by default) */
 #     define DATASTART ((ptr_t) get_etext())
 #     define DATAEND	((ptr_t) get_end())
-#     define STACKBOTTOM ((ptr_t) 0xc0000000)
 #     define USE_MMAP
 #     define USE_MMAP_ANON
 #     ifdef GC_DARWIN_THREADS
-       /* This is potentially buggy. It needs more testing. See the comments in
-          os_dep.c.  It relies on threads to track writes. */
 #       define MPROTECT_VDB
 #     endif
 #     include <unistd.h>
@@ -772,7 +785,7 @@
 	  __asm__ __volatile__ ("dcbtst 0,%0" : : "r" ((const void *) (x)))
 #     endif
       /* There seems to be some issues with trylock hanging on darwin. This
-         should be looked into some more */
+	 should be looked into some more */
 #     define NO_PTHREAD_TRYLOCK
 #   endif
 #   ifdef FREEBSD
@@ -979,8 +992,7 @@
 # ifdef I386
 #   define MACH_TYPE "I386"
 #   if defined(__LP64__) || defined(_WIN64)
-#     define CPP_WORDSZ 64
-#     define ALIGNMENT 8
+#     error This should be handled as X86_64
 #   else
 #     define CPP_WORDSZ 32
 #     define ALIGNMENT 4
@@ -1257,10 +1269,11 @@
 #     define OS_TYPE "HURD"
 #     define STACK_GROWS_DOWN
 #     define HEURISTIC2
-      extern int  __data_start[];
-#     define DATASTART ( (ptr_t) (__data_start))
-      extern int   _end[];
-#     define DATAEND ( (ptr_t) (_end))
+#     define SIG_SUSPEND SIGUSR1
+#     define SIG_THR_RESTART SIGUSR2
+#     define SEARCH_FOR_DATA_START
+      extern int _end[];
+#     define DATAEND ((ptr_t) (_end))
 /* #     define MPROTECT_VDB  Not quite working yet? */
 #     define DYNAMIC_LOADING
 #   endif
@@ -1269,21 +1282,19 @@
 #     define DARWIN_DONT_PARSE_STACK
 #     define DYNAMIC_LOADING
       /* XXX: see get_end(3), get_etext() and get_end() should not be used.
-        These aren't used when dyld support is enabled (it is by default) */
+	 These aren't used when dyld support is enabled (it is by default) */
 #     define DATASTART ((ptr_t) get_etext())
 #     define DATAEND	((ptr_t) get_end())
 #     define STACKBOTTOM ((ptr_t) 0xc0000000)
 #     define USE_MMAP
 #     define USE_MMAP_ANON
-      /* This is potentially buggy. It needs more testing. See the comments in
-        os_dep.c.  It relies on threads to track writes. */
 #     ifdef GC_DARWIN_THREADS
-/* #       define MPROTECT_VDB -- disabled for now.  May work for some apps. */
+#       define MPROTECT_VDB
 #     endif
 #     include <unistd.h>
 #     define GETPAGESIZE() getpagesize()
       /* There seems to be some issues with trylock hanging on darwin. This
-         should be looked into some more */
+	 should be looked into some more */
 #      define NO_PTHREAD_TRYLOCK
 #   endif /* DARWIN */
 # endif
@@ -1397,10 +1408,9 @@
 #    define OS_TYPE "NONSTOP"
 #    define ALIGNMENT 4
 #    define DATASTART ((ptr_t) 0x08000000)
-     extern int _end[];
-#    define DATAEND (_end)
+     extern char **environ;
+#    define DATAEND ((ptr_t)(environ - 0x10))
 #    define STACKBOTTOM ((ptr_t) 0x4fffffff)
-#    define USE_GENERIC_PUSH_REGS
 #   endif
 # endif
 
@@ -1418,9 +1428,6 @@
 #       define MPROTECT_VDB
 #     endif
 #   else
-#     define GENERIC_COMPARE_AND_SWAP
-	/* No compare-and-swap instruction.  Use pthread mutexes 	*/
-	/* when we absolutely have to.					*/
 #     ifdef PARALLEL_MARK
 #	define USE_MARK_BYTES
 		/* Minimize compare-and-swap usage.		*/
@@ -1862,6 +1869,26 @@
 #	    define PREFETCH_FOR_WRITE(x) __builtin_prefetch((x), 1)
 #	endif
 #   endif
+#   ifdef DARWIN
+#     define OS_TYPE "DARWIN"
+#     define DARWIN_DONT_PARSE_STACK
+#     define DYNAMIC_LOADING
+      /* XXX: see get_end(3), get_etext() and get_end() should not be used.
+	 These aren't used when dyld support is enabled (it is by default) */
+#     define DATASTART ((ptr_t) get_etext())
+#     define DATAEND	((ptr_t) get_end())
+#     define STACKBOTTOM ((ptr_t) 0x7fff5fc00000)
+#     define USE_MMAP
+#     define USE_MMAP_ANON
+#     ifdef GC_DARWIN_THREADS
+#       define MPROTECT_VDB
+#     endif
+#     include <unistd.h>
+#     define GETPAGESIZE() getpagesize()
+      /* There seems to be some issues with trylock hanging on darwin. This
+	 should be looked into some more */
+#     define NO_PTHREAD_TRYLOCK
+#   endif
 #   ifdef FREEBSD
 #	define OS_TYPE "FREEBSD"
 #	ifndef GC_FREEBSD_THREADS
@@ -1933,6 +1960,20 @@
 #       else
 #	  define HEAP_START DATAEND
 #       endif
+#   endif
+#   ifdef MSWIN32
+#	define OS_TYPE "MSWIN32"
+		/* STACKBOTTOM and DATASTART are handled specially in 	*/
+		/* os_dep.c.						*/
+#       if !defined(__WATCOMC__)
+#	  define MPROTECT_VDB
+	  /* We also avoided doing this in the past with GC_WIN32_THREADS */
+	  /* Hopefully that's fixed.					  */
+#	endif
+#	if _MSC_VER >= 1300  /* .NET, i.e. > VisualStudio 6	*/
+#         define GWW_VDB
+#	endif
+#       define DATAEND  /* not needed */
 #   endif
 # endif
 
@@ -2024,7 +2065,8 @@
 # if defined(SVR4) || defined(LINUX) || defined(IRIX5) || defined(HPUX) \
 	    || defined(OPENBSD) || defined(NETBSD) || defined(FREEBSD) \
 	    || defined(DGUX) || defined(BSD) \
-	    || defined(AIX) || defined(DARWIN) || defined(OSF1)
+	    || defined(AIX) || defined(DARWIN) || defined(OSF1) \
+	    || defined(HURD)
 #   define UNIX_LIKE   /* Basic Unix-like system calls work.	*/
 # endif
 
@@ -2040,12 +2082,6 @@
 #   undef PROC_VDB
 #   undef MPROTECT_VDB
 #   define PCR_VDB
-# endif
-
-# ifdef SRC_M3
-	/* Postponed for now. */
-#   undef PROC_VDB
-#   undef MPROTECT_VDB
 # endif
 
 # ifdef SMALL_CONFIG
@@ -2081,7 +2117,7 @@
 #   define CACHE_LINE_SIZE 32	/* Wild guess	*/
 # endif
 
-# if defined(LINUX) || defined(__GLIBC__)
+# if defined(LINUX) || defined(HURD) || defined(__GLIBC__)
 #   define REGISTER_LIBRARIES_EARLY
     /* We sometimes use dl_iterate_phdr, which may acquire an internal	*/
     /* lock.  This isn't safe after the world has stopped.  So we must	*/
@@ -2126,13 +2162,14 @@
 # if defined(GC_AIX_THREADS) && !defined(_AIX)
 	--> inconsistent configuration
 # endif
+# if defined(GC_GNU_THREADS) && !defined(HURD)
+	--> inconsistent configuration
+# endif
 # if defined(GC_WIN32_THREADS) && !defined(MSWIN32) && !defined(CYGWIN32)
 	--> inconsistent configuration
 # endif
 
-# if defined(PCR) || defined(SRC_M3) || \
-		defined(GC_SOLARIS_THREADS) || defined(GC_WIN32_THREADS) || \
-		defined(GC_PTHREADS)
+# if defined(PCR) || defined(GC_WIN32_THREADS) || defined(GC_PTHREADS)
 #   define THREADS
 # endif
 
@@ -2224,8 +2261,20 @@
 #   define MARK_BIT_PER_GRANULE	/* Usually faster */
 # endif
 
+/* Some static sanity tests.	*/
 # if defined(MARK_BIT_PER_GRANULE) && defined(MARK_BIT_PER_OBJ)
 #   error Define only one of MARK_BIT_PER_GRANULE and MARK_BIT_PER_OBJ.
+# endif
+
+# if defined(STACK_GROWS_UP) && defined(STACK_GROWS_DOWN)
+#   error "Only one of STACK_GROWS_UP and STACK_GROWS_DOWN should be defd."
+# endif
+# if !defined(STACK_GROWS_UP) && !defined(STACK_GROWS_DOWN)
+#   error "One of STACK_GROWS_UP and STACK_GROWS_DOWN should be defd."
+# endif
+
+# if defined(REDIRECT_MALLOC) && defined(THREADS) && !defined(LINUX)
+#   error "REDIRECT_MALLOC with THREADS works at most on Linux."
 # endif
 
 #ifdef GC_PRIVATE_H

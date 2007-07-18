@@ -26,8 +26,9 @@
  * None of this is safe with dlclose and incremental collection.
  * But then not much of anything is safe in the presence of dlclose.
  */
-#if (defined(__linux__) || defined(__GLIBC__)) && !defined(_GNU_SOURCE)
-    /* Can't test LINUX, since this must be define before other includes */
+#if (defined(__linux__) || defined(__GLIBC__) || defined(__GNU__)) \
+     && !defined(_GNU_SOURCE)
+    /* Can't test LINUX, since this must be defined before other includes */
 #   define _GNU_SOURCE
 #endif
 #if !defined(MACOS) && !defined(_WIN32_WCE)
@@ -63,7 +64,7 @@ static int (*GC_has_static_roots)(const char *, void *, size_t);
     !defined(AIX) && !defined(SCO_ELF) && !defined(DGUX) && \
     !(defined(FREEBSD) && defined(__ELF__)) && \
     !(defined(NETBSD) && defined(__ELF__)) && !defined(HURD) && \
-    !defined(DARWIN)
+    !defined(DARWIN) && !defined(CYGWIN32)
  --> We only know how to find data segments of dynamic libraries for the
  --> above.  Additional SVR4 variants might not be too
  --> hard to add.
@@ -240,7 +241,7 @@ char *GC_get_maps(void);
 
 word GC_register_map_entries(char *maps)
 {
-    char *prot_buf;
+    char *prot;
     char *buf_ptr = maps;
     int count;
     ptr_t start, end;
@@ -635,7 +636,7 @@ void GC_register_dynamic_libraries()
 
 # endif /* USE_PROC || IRIX5 */
 
-# if defined(MSWIN32) || defined(MSWINCE)
+# if defined(MSWIN32) || defined(MSWINCE) || defined(CYGWIN32)
 
 # define WIN32_LEAN_AND_MEAN
 # define NOSERVICE
@@ -715,7 +716,7 @@ void GC_register_dynamic_libraries()
   void GC_register_dynamic_libraries()
   {
     MEMORY_BASIC_INFORMATION buf;
-    DWORD result;
+    size_t result;
     DWORD protect;
     LPVOID p;
     char * base;
@@ -726,8 +727,8 @@ void GC_register_dynamic_libraries()
 #   endif
     base = limit = p = GC_sysinfo.lpMinimumApplicationAddress;
 #   if defined(MSWINCE) && !defined(_WIN32_WCE_EMULATION)
-    /* Only the first 32 MB of address space belongs to the current process */
-    while (p < (LPVOID)0x02000000) {
+      /* Only the first 32 MB of address space belongs to the current process */
+      while (p < (LPVOID)0x02000000) {
         result = VirtualQuery(p, &buf, sizeof(buf));
 	if (result == 0) {
 	    /* Page is free; advance to the next possible allocation base */
@@ -736,7 +737,7 @@ void GC_register_dynamic_libraries()
 		 & ~(GC_sysinfo.dwAllocationGranularity-1));
 	} else
 #   else
-    while (p < GC_sysinfo.lpMaximumApplicationAddress) {
+      while (p < GC_sysinfo.lpMaximumApplicationAddress) {
         result = VirtualQuery(p, &buf, sizeof(buf));
 #   endif
 	{
@@ -771,7 +772,7 @@ void GC_register_dynamic_libraries()
     GC_cond_add_roots(base, limit);
   }
 
-#endif /* MSWIN32 || MSWINCE */
+#endif /* MSWIN32 || MSWINCE || CYGWIN32 */
   
 #if defined(ALPHA) && defined(OSF1)
 
@@ -996,7 +997,7 @@ const static struct {
 };
     
 #ifdef DARWIN_DEBUG
-static const char *GC_dyld_name_for_hdr(struct mach_header *hdr) {
+static const char *GC_dyld_name_for_hdr(const struct GC_MACH_HEADER *hdr) {
     unsigned long i,c;
     c = _dyld_image_count();
     for(i=0;i<c;i++) if(_dyld_get_image_header(i) == hdr)
@@ -1006,21 +1007,27 @@ static const char *GC_dyld_name_for_hdr(struct mach_header *hdr) {
 #endif
         
 /* This should never be called by a thread holding the lock */
-static void GC_dyld_image_add(struct mach_header* hdr, unsigned long slide) {
+static void GC_dyld_image_add(const struct GC_MACH_HEADER *hdr, intptr_t slide)
+{
     unsigned long start,end,i;
-    const struct section *sec;
+    const struct GC_MACH_SECTION *sec;
     if (GC_no_dls) return;
     for(i=0;i<sizeof(GC_dyld_sections)/sizeof(GC_dyld_sections[0]);i++) {
-        sec = getsectbynamefromheader(
-            hdr,GC_dyld_sections[i].seg,GC_dyld_sections[i].sect);
-        if(sec == NULL || sec->size == 0) continue;
-        start = slide + sec->addr;
-        end = start + sec->size;
-#	ifdef DARWIN_DEBUG
-            GC_printf("Adding section at %p-%p (%lu bytes) from image %s\n",
-                      start,end,sec->size,GC_dyld_name_for_hdr(hdr));
-#	endif
-        GC_add_roots((char*)start,(char*)end);
+#   if defined (__LP64__)
+      sec = getsectbynamefromheader_64(
+#   else
+      sec = getsectbynamefromheader(
+#   endif
+				    hdr, GC_dyld_sections[i].seg,
+				    GC_dyld_sections[i].sect);
+      if(sec == NULL || sec->size == 0) continue;
+      start = slide + sec->addr;
+      end = start + sec->size;
+#   ifdef DARWIN_DEBUG
+      GC_printf("Adding section at %p-%p (%lu bytes) from image %s\n",
+		start,end,sec->size,GC_dyld_name_for_hdr(hdr));
+#   endif
+      GC_add_roots((char*)start,(char*)end);
     }
 #   ifdef DARWIN_DEBUG
        GC_print_static_roots();
@@ -1028,23 +1035,30 @@ static void GC_dyld_image_add(struct mach_header* hdr, unsigned long slide) {
 }
 
 /* This should never be called by a thread holding the lock */
-static void GC_dyld_image_remove(struct mach_header* hdr, unsigned long slide) {
+static void GC_dyld_image_remove(const struct GC_MACH_HEADER *hdr,
+				 intptr_t slide)
+{
     unsigned long start,end,i;
-    const struct section *sec;
+    const struct GC_MACH_SECTION *sec;
     for(i=0;i<sizeof(GC_dyld_sections)/sizeof(GC_dyld_sections[0]);i++) {
-        sec = getsectbynamefromheader(
-            hdr,GC_dyld_sections[i].seg,GC_dyld_sections[i].sect);
-        if(sec == NULL || sec->size == 0) continue;
-        start = slide + sec->addr;
-        end = start + sec->size;
-#	ifdef DARWIN_DEBUG
-            GC_printf("Removing section at %p-%p (%lu bytes) from image %s\n",
-                      start,end,sec->size,GC_dyld_name_for_hdr(hdr));
-#	endif
-        GC_remove_roots((char*)start,(char*)end);
+#   if defined (__LP64__)
+      sec = getsectbynamefromheader_64(
+#   else
+      sec = getsectbynamefromheader(
+#   endif
+				    hdr, GC_dyld_sections[i].seg,
+				    GC_dyld_sections[i].sect);
+      if(sec == NULL || sec->size == 0) continue;
+      start = slide + sec->addr;
+      end = start + sec->size;
+#   ifdef DARWIN_DEBUG
+      GC_printf("Removing section at %p-%p (%lu bytes) from image %s\n",
+		start,end,sec->size,GC_dyld_name_for_hdr(hdr));
+#   endif
+      GC_remove_roots((char*)start,(char*)end);
     }
 #   ifdef DARWIN_DEBUG
-        GC_print_static_roots();
+	GC_print_static_roots();
 #   endif
 }
 

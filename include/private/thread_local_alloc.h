@@ -39,8 +39,8 @@
 #     else
 #       define USE_WIN32_COMPILER_TLS
 #     endif /* !GNU */
-#   elif defined(LINUX) && \
-		 (__GNUC__ > 3 || (__GNUC == 3 && __GNUC_MINOR__ >=3))
+#   elif defined(LINUX) && !defined(ARM32) && \
+		 (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >=3))
 #     define USE_COMPILER_TLS
 #   elif (defined(GC_DGUX386_THREADS) || defined(GC_OSF1_THREADS) || \
          defined(GC_DARWIN_THREADS) || defined(GC_AIX_THREADS)) || \
@@ -139,7 +139,7 @@ extern
 #if defined(USE_COMPILER_TLS)
   __thread
 #elif defined(USE_WIN32_COMPILER_TLS)
-  declspec(thread)
+  __declspec(thread)
 #endif
 GC_key_t GC_thread_key;
 

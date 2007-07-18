@@ -36,6 +36,10 @@
 #   include <sys/resource.h>
 #endif /* BSD_TIME */
 
+#ifdef PARALLEL_MARK
+#   define AO_REQUIRE_CAS
+#endif
+
 #ifndef _GC_H
 #   include "../gc.h"
 #endif
@@ -363,6 +367,54 @@ extern GC_warn_proc GC_current_warn_proc;
 #   define GETENV(name) 0
 #endif
 
+#if defined(DARWIN)
+#	if defined(POWERPC)
+#		if CPP_WORDSZ == 32
+#                 define GC_THREAD_STATE_T ppc_thread_state_t
+#		  define GC_MACH_THREAD_STATE PPC_THREAD_STATE
+#		  define GC_MACH_THREAD_STATE_COUNT PPC_THREAD_STATE_COUNT
+#		  define GC_MACH_HEADER mach_header
+#		  define GC_MACH_SECTION section
+#	        else
+#                 define GC_THREAD_STATE_T ppc_thread_state64_t
+#		  define GC_MACH_THREAD_STATE PPC_THREAD_STATE64
+#		  define GC_MACH_THREAD_STATE_COUNT PPC_THREAD_STATE64_COUNT
+#		  define GC_MACH_HEADER mach_header_64
+#		  define GC_MACH_SECTION section_64
+#		endif
+#	elif defined(I386) || defined(X86_64)
+#               if CPP_WORDSZ == 32
+#		  define GC_THREAD_STATE_T x86_thread_state32_t
+#		  define GC_MACH_THREAD_STATE x86_THREAD_STATE32
+#		  define GC_MACH_THREAD_STATE_COUNT x86_THREAD_STATE32_COUNT
+#		  define GC_MACH_HEADER mach_header
+#		  define GC_MACH_SECTION section
+#               else
+#		  define GC_THREAD_STATE_T x86_thread_state64_t
+#		  define GC_MACH_THREAD_STATE x86_THREAD_STATE64
+#		  define GC_MACH_THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
+#		  define GC_MACH_HEADER mach_header_64
+#		  define GC_MACH_SECTION section_64
+#               endif
+#	else
+#		error define GC_THREAD_STATE_T
+#		define GC_MACH_THREAD_STATE MACHINE_THREAD_STATE
+#		define GC_MACH_THREAD_STATE_COUNT MACHINE_THREAD_STATE_COUNT
+#	endif
+/* Try to work out the right way to access thread state structure members.
+   The structure has changed its definition in different Darwin versions.
+   This now defaults to the (older) names without __, thus hopefully,
+   not breaking any existing Makefile.direct builds.  */
+#       if defined (HAS_PPC_THREAD_STATE___R0) \
+	  || defined (HAS_PPC_THREAD_STATE64___R0) \
+	  || defined (HAS_X86_THREAD_STATE32___EAX) \
+	  || defined (HAS_X86_THREAD_STATE64___RAX)
+#         define THREAD_FLD(x) __ ## x
+#       else
+#         define THREAD_FLD(x) x
+#       endif
+#endif
+
 /*********************************/
 /*                               */
 /* Word-size-dependent defines   */
@@ -501,7 +553,7 @@ extern GC_warn_proc GC_current_warn_proc;
  
 # define HBLKPTR(objptr) ((struct hblk *)(((word) (objptr)) & ~(HBLKSIZE-1)))
 
-# define HBLKDISPL(objptr) (((word) (objptr)) & (HBLKSIZE-1))
+# define HBLKDISPL(objptr) (((size_t) (objptr)) & (HBLKSIZE-1))
 
 /* Round up byte allocation requests to integral number of words, etc. */
 # define ROUNDED_UP_WORDS(n) \
@@ -856,7 +908,7 @@ struct _GC_arrays {
     word _unmapped_bytes;
 # endif
 
-    unsigned _size_map[MAXOBJBYTES+1];
+    size_t _size_map[MAXOBJBYTES+1];
     	/* Number of words to allocate for a given allocation request in */
     	/* bytes.							 */
 
@@ -1080,7 +1132,7 @@ extern struct obj_kind {
 #   define IS_UNCOLLECTABLE(k) ((k) == UNCOLLECTABLE)
 # endif
 
-extern int GC_n_kinds;
+extern unsigned GC_n_kinds;
 
 GC_API word GC_fo_entries;
 
@@ -1189,7 +1241,7 @@ extern long GC_large_alloc_warn_suppressed;
 #endif /* !USE_MARK_BYTES */
 
 #ifdef MARK_BIT_PER_OBJ
-#  define MARK_BIT_NO(offset, sz) ((offset)/(sz))
+#  define MARK_BIT_NO(offset, sz) (((unsigned)(offset))/(sz))
 	/* Get the mark bit index corresponding to the given byte	*/
 	/* offset and size (in bytes). 				        */
 #  define MARK_BIT_OFFSET(sz) 1
@@ -1198,7 +1250,7 @@ extern long GC_large_alloc_warn_suppressed;
 #  define FINAL_MARK_BIT(sz) ((sz) > MAXOBJBYTES? 1 : HBLK_OBJS(sz))
 	/* Position of final, always set, mark bit.			*/
 #else /* MARK_BIT_PER_GRANULE */
-#  define MARK_BIT_NO(offset, sz) BYTES_TO_GRANULES(offset)
+#  define MARK_BIT_NO(offset, sz) BYTES_TO_GRANULES((unsigned)(offset))
 #  define MARK_BIT_OFFSET(sz) BYTES_TO_GRANULES(sz)
 #  define IF_PER_OBJ(x)
 #  define FINAL_MARK_BIT(sz) \
@@ -1490,7 +1542,7 @@ ptr_t GC_build_fl(struct hblk *h, size_t words, GC_bool clear, ptr_t list);
 				/* called explicitly without GC lock.	*/
 
 struct hblk * GC_allochblk (size_t size_in_bytes, int kind,
-		            unsigned char flags);
+		            unsigned flags);
 				/* Allocate a heap block, inform	*/
 				/* the marker that block is valid	*/
 				/* for objects of indicated size.	*/
@@ -1534,6 +1586,13 @@ void GC_reclaim_or_delete_all(void);
 GC_bool GC_reclaim_all(GC_stop_func stop_func, GC_bool ignore_old);
   				/* Reclaim all blocks.  Abort (in a	*/
   				/* consistent state) if f returns TRUE. */
+ptr_t GC_reclaim_generic(struct hblk * hbp, hdr *hhdr, size_t sz,
+			 GC_bool init, ptr_t list, signed_word *count);
+			 	/* Rebuild free list in hbp with 	*/
+				/* header hhdr, with objects of size sz */
+				/* bytes.  Add list to the end of the	*/
+				/* free list.  Add the number of	*/
+				/* reclaimed bytes to *count.		*/
 GC_bool GC_block_empty(hdr * hhdr);
  				/* Block completely unmarked? 	*/
 GC_bool GC_never_stop_func(void);
@@ -1946,7 +2005,7 @@ void GC_err_puts(const char *s);
 #   define NEED_FIND_LIMIT
 # endif
 
-#if defined(FREEBSD) && (defined(I386) || defined(powerpc) \
+#if defined(FREEBSD) && (defined(I386) || defined(X86_64) || defined(powerpc) \
     || defined(__powerpc__))
 #  include <machine/trap.h>
 #  if !defined(PCR)

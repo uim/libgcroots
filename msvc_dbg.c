@@ -19,6 +19,10 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 */
+#ifndef _M_AMD64
+
+/* X86_64 is ccurrently missing some meachine-dependent code below. */
+
 #include "private/msvc_dbg.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -73,7 +77,7 @@ static ULONG_ADDR CALLBACK GetModuleBase(HANDLE hProcess, ULONG_ADDR dwAddress)
 		// Save and restore current directory around SymLoadModule, see KB article Q189780
 		GetCurrentDirectoryA(sizeof(curDir), curDir);
 		GetModuleFileNameA(NULL, exePath, sizeof(exePath));
-		strcat(exePath, "\\..");
+		strcat_s(exePath, sizeof(exePath), "\\..");
 		SetCurrentDirectoryA(exePath);
 #ifdef _DEBUG
 		GetCurrentDirectoryA(sizeof(exePath), exePath);
@@ -340,3 +344,5 @@ char** backtrace_symbols(void*const* addresses, int count)
 	GetDescriptionFromStack(addresses, count, NULL, symbols, size);
 	return symbols;
 }
+
+#endif /* !_M_AMD64 */
