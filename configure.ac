@@ -18,14 +18,14 @@ dnl Process this file with autoconf to produce configure.
 # Initialization
 # ==============
 
-dnl AC_INIT(gc,7.0alpha7,Hans.Boehm@hp.com) 
+dnl AC_INIT(gc,7.0,Hans.Boehm@hp.com) 
 dnl     ## version must conform to [0-9]+[.][0-9]+(alpha[0-9]+)?
 dnl AC_CONFIG_SRCDIR(gcj_mlc.c)
 AC_INIT([gcroots], [0.2.0], [sigscheme-ja@googlegroups.com], [libgcroots]) 
 AC_CONFIG_SRCDIR(include/private/gcroots_priv.h)
 AC_CANONICAL_TARGET 
 AC_PREREQ(2.60b)
-dnl AC_REVISION($Revision: 1.14 $)
+dnl AC_REVISION($Revision: 1.25 $)
 dnl GC_SET_VERSION
 AM_INIT_AUTOMAKE([foreign dist-bzip2 subdir-objects nostdinc])
 AM_MAINTAINER_MODE
@@ -162,6 +162,11 @@ case "$THREADS" in
 	AC_DEFINE(THREAD_LOCAL_ALLOC)
 	AC_DEFINE(USE_COMPILER_TLS)
       	;;
+     *-*-gnu*)
+	AC_DEFINE(GC_GNU_THREADS)
+	AC_DEFINE(_REENTRANT)
+	AC_DEFINE(THREAD_LOCAL_ALLOC)
+	;;
      *-*-netbsd*)
 	AC_MSG_WARN("Only on NetBSD 2.0 or later.")
 	AC_DEFINE(GC_NETBSD_THREADS)
@@ -183,6 +188,7 @@ case "$THREADS" in
 	;;
      *-*-cygwin*)
 	AC_DEFINE(GC_WIN32_THREADS)
+	AC_DEFINE(THREAD_LOCAL_ALLOC)
 	win32_threads=true
 	;;
      *-*-darwin*)
@@ -256,6 +262,54 @@ case "$host" in
       ;;
 esac
 
+# Darwin needs a few extra special tests to deal with variation in the
+# system headers.
+case "$host" in
+  powerpc*-*-darwin*)
+    AC_CHECK_MEMBER(ppc_thread_state_t.r0,
+      AC_DEFINE(HAS_PPC_THREAD_STATE_R0,1,
+	[ppc_thread_state_t has field r0]),,
+      [#include <mach/thread_status.h>])
+    AC_CHECK_MEMBER(ppc_thread_state_t.__r0,
+      AC_DEFINE(HAS_PPC_THREAD_STATE___R0,1,dnl
+	[ppc_thread_state_t has field __r0]),,
+      [#include <mach/thread_status.h>])
+    AC_CHECK_MEMBER(ppc_thread_state64_t.r0,
+      AC_DEFINE(HAS_PPC_THREAD_STATE64_R0,1,dnl
+	[ppc_thread_state64_t has field r0]),,
+      [#include <mach/thread_status.h>])
+    AC_CHECK_MEMBER(ppc_thread_state64_t.__r0,
+      AC_DEFINE(HAS_PPC_THREAD_STATE64___R0,1,dnl
+	[ppc_thread_state64_t has field __r0]),,
+      [#include <mach/thread_status.h>])
+    ;;
+  i?86*-*-darwin*)
+    AC_CHECK_MEMBER(x86_thread_state32_t.eax,
+      AC_DEFINE(HAS_X86_THREAD_STATE32_EAX,1,dnl
+	[x86_thread_state32_t has field eax]),,
+      [#include <sys/cdefs.h>
+      #include <mach/thread_status.h>])
+    AC_CHECK_MEMBER(x86_thread_state32_t.__eax,
+      AC_DEFINE(HAS_X86_THREAD_STATE32___EAX,1,dnl
+	[x86_thread_state32_t has field __eax]),,
+      [#include <sys/cdefs.h>
+      #include <mach/thread_status.h>])
+    ;;
+  x86_64-*-darwin*)
+    AC_CHECK_MEMBER(x86_thread_state64_t.rax,
+      AC_DEFINE(HAS_X86_THREAD_STATE64_RAX,1,dnl
+	[x86_thread_state64_t has field rax]),,
+      [#include <sys/cdefs.h>
+      #include <mach/thread_status.h>])
+    AC_CHECK_MEMBER(x86_thread_state64_t.__rax,
+      AC_DEFINE(HAS_X86_THREAD_STATE64___RAX,1,dnl
+	[x86_thread_state64_t has field __rax]),,
+      [#include <sys/cdefs.h>
+      #include <mach/thread_status.h>])
+     ;;
+  *) ;;
+esac
+
 AC_MSG_CHECKING(for xlc)
 AC_TRY_COMPILE([],[
  #ifndef __xlC__
@@ -273,10 +327,18 @@ fi
 # dyld calls anyway
 case "$host" in
   *-*-darwin*) ;;
-  *) 
+  *)
     AC_CHECK_LIB(dl, dlopen, THREADDLLIBS="$THREADDLLIBS -ldl")
     ;;
 esac
+
+# extra LD Flags which are required for targets
+case "${host}" in
+  *-*-darwin*)
+    extra_ldflags_libgc=-Wl,-single_module
+    ;;
+esac
+AC_SUBST(extra_ldflags_libgc)
 
 AC_SUBST(EXTRA_TEST_LIBS)
 
@@ -362,7 +424,9 @@ case "$host" in
     ;; 
  mips-*-*)
     machdep="mach_dep.lo"
-    AC_DEFINE(NO_EXECUTE_PERMISSION)
+    dnl AC_DEFINE(NO_EXECUTE_PERMISSION)
+    dnl This is now redundant, but it is also important for incremental GC
+    dnl performance under Irix.
     ;;
  # should be replaced with sparc_mach_dep.lo?
  sparc-*-netbsd*)
@@ -530,6 +594,10 @@ if test -n "${with_cross_host}"; then
    AC_DEFINE(SMALL_CONFIG)
    AC_DEFINE(NO_DEBUGGING)
 fi
+
+dnl libgcroots always define SMALL_CONFIG to define GC_abort() as abort()
+dnl   -- YamaKen 2007-07-18
+AC_DEFINE(SMALL_CONFIG)
 
 
 dnl Debugging

@@ -21,6 +21,9 @@
  * 2006-12-23 YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp>
  *            - Imported from mark.c of gc7.0alpha7
  *            - Remove all functions but GC_noop1()
+ * 2007-07-18 YAMAMOTO Kengo <yamaken AT bp.iij4u.or.jp>
+ *            - Update to gc-7.0
+ *            - Keep all functions but GC_noop1() removed
  */
 
 # include "private/gcroots_priv.h"
