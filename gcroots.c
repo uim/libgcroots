@@ -123,20 +123,20 @@ GCROOTS_call_with_gc_ready_stack(GCROOTS_context *ctx,
     return ret;
 }
 
-int
-GCROOTS_is_protected_context(GCROOTS_context *ctx)
-{
-    assert(ctx);
-
-    return (ctx->stack_base) ? TRUE : FALSE;
-}
-
 void
 GCROOTS_mark(GCROOTS_context *ctx)
 {
     assert(ctx);
 
     GC_push_regs_and_stack((ptr_t)ctx);
+}
+
+int
+GCROOTS_is_protected_context(GCROOTS_context *ctx)
+{
+    assert(ctx);
+
+    return (ctx->stack_base) ? TRUE : FALSE;
 }
 
 int
@@ -147,7 +147,7 @@ GCROOTS_is_protected(GCROOTS_context *ctx, void *obj)
     assert(ctx);
 
     if (!GCROOTS_is_protected_context(ctx))
-      return FALSE;
+        return FALSE;
 
     tmp_ctx = *ctx;
     tmp_ctx.mark = find_obj; /* not actually a mark function */
@@ -167,13 +167,13 @@ find_obj(void *start, void *end, int is_certain, int is_aligned)
 
     offset = 0;
     do {
-      for (p = (void **)start + offset; p < (void **)end; p++) {
-        if (*p == findee) {
-          found = TRUE;
-          return;
+        for (p = (void **)start + offset; p < (void **)end; p++) {
+            if (*p == findee) {
+                found = TRUE;
+                return;
+            }
         }
-      }
-      offset += ALIGNOF_VOID_P;
+        offset += ALIGNOF_VOID_P;
     } while (!is_aligned
              && SIZEOF_VOID_P != ALIGNOF_VOID_P
              && offset % SIZEOF_VOID_P);

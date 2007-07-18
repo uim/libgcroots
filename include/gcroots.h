@@ -51,8 +51,8 @@ void *GCROOTS_call_with_gc_ready_stack(GCROOTS_context *ctx,
                                        void *arg);
 void GCROOTS_mark(GCROOTS_context *ctx);
 
-int GCROOTS_is_protected(GCROOTS_context *ctx, void *obj);
 int GCROOTS_is_protected_context(GCROOTS_context *ctx);
+int GCROOTS_is_protected(GCROOTS_context *ctx, void *obj);
 
 #ifdef __cplusplus
 }
