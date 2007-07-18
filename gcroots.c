@@ -87,6 +87,8 @@ GCROOTS_init(GCROOTS_context_alloc_proc allocator, GCROOTS_mark_proc marker,
 void
 GCROOTS_fin(GCROOTS_context *ctx)
 {
+    assert(ctx);
+
     /* Nothing to do for this implementation. Caller must free ctx. */
 }
 
@@ -97,6 +99,9 @@ GCROOTS_call_with_gc_ready_stack(GCROOTS_context *ctx,
     void *ret;
     word stack_top; /* approx */
     volatile GCROOTS_user_proc anti_inline_proc;
+
+    assert(ctx);
+    assert(proc);
 
     if (!ctx->stack_base) {
         ctx->stack_base = &stack_top;
@@ -121,12 +126,16 @@ GCROOTS_call_with_gc_ready_stack(GCROOTS_context *ctx,
 int
 GCROOTS_is_protected_context(GCROOTS_context *ctx)
 {
+    assert(ctx);
+
     return (ctx->stack_base) ? TRUE : FALSE;
 }
 
 void
 GCROOTS_mark(GCROOTS_context *ctx)
 {
+    assert(ctx);
+
     GC_push_regs_and_stack((ptr_t)ctx);
 }
 
@@ -134,6 +143,8 @@ int
 GCROOTS_is_protected(GCROOTS_context *ctx, void *obj)
 {
     GCROOTS_context tmp_ctx;
+
+    assert(ctx);
 
     if (!GCROOTS_is_protected_context(ctx))
       return FALSE;
