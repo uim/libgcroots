@@ -175,7 +175,8 @@ void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
 
 #   if defined(HAVE_PUSH_REGS)
       GC_push_regs();
-#   elif defined(UNIX_LIKE) && !defined(DARWIN) && !defined(ARM32)
+#   elif defined(UNIX_LIKE) && HAVE_GETCONTEXT \
+                && !defined(DARWIN) && !defined(ARM32)
       /* Older versions of Darwin seem to lack getcontext(). */
       /* ARM Linux often doesn't support a real getcontext(). */
       ucontext_t ctxt;
