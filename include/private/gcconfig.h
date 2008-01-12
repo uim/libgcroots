@@ -83,6 +83,10 @@
 #    define SPARC
 #    define mach_type_known
 # endif
+# if defined(OPENBSD) && defined(__powerpc__)
+#    define POWERPC
+#    define mach_type_known
+# endif
 # if defined(NETBSD) && (defined(m68k) || defined(__m68k__))
 #    define M68K
 #    define mach_type_known
@@ -316,6 +320,10 @@
 # if defined(__OpenBSD__) && (defined(i386) || defined(__i386__))
 #   define I386
 #   define OPENBSD
+#   define mach_type_known
+# endif
+# if defined(__OpenBSD__) && defined(__x86_64__)
+#   define X86_64
 #   define mach_type_known
 # endif
 # if defined(FREEBSD) && (defined(i386) || defined(__i386__))
