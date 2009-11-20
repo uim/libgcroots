@@ -21,7 +21,7 @@ dnl Process this file with autoconf to produce configure.
 dnl AC_INIT(gc,7.0,Hans.Boehm@hp.com) 
 dnl     ## version must conform to [0-9]+[.][0-9]+(alpha[0-9]+)?
 dnl AC_CONFIG_SRCDIR(gcj_mlc.c)
-AC_INIT([gcroots], [0.2.2], [sigscheme-ja@googlegroups.com], [libgcroots]) 
+AC_INIT([gcroots], [0.2.3], [sigscheme-ja@googlegroups.com], [libgcroots]) 
 AC_CONFIG_SRCDIR(include/private/gcroots_priv.h)
 AC_CANONICAL_TARGET 
 AC_PREREQ(2.60b)
