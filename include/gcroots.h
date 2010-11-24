@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 #define GCROOTS_VERSION_MAJOR      (0)
-#define GCROOTS_VERSION_MINOR      (2)
+#define GCROOTS_VERSION_MINOR      (3)
 #define GCROOTS_VERSION_PATCHLEVEL (0)
 #define GCROOTS_API_REVISION       (1)
 
