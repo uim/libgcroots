@@ -376,7 +376,13 @@ AC_SUBST(CXX)
 AC_SUBST(INCLUDES)
 AC_SUBST(CXXINCLUDES)
 
-AX_FUNC_GETCONTEXT
+# Since glibc has a stub implementation of getcontext(3), AX_FUNC_GETCONTEXT
+# does not work as expected on such environments. But on such environtments,
+# AC_CHECK_FUNCS() can detect whether the platform has working
+# getcontext(3). See [sigscheme-ja 17] by NIIBE Yutaka for further details.
+#   -- YamaKen 2008-04-21
+# AX_FUNC_GETCONTEXT
+AC_CHECK_FUNCS([getcontext])
 
 # Configuration of shared libraries
 #
