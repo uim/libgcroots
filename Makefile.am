@@ -22,11 +22,9 @@ include libtool-version.mk
 # $(distdir) does work as a part of $(RELEASE_URL) when configured as a
 # subpackage.
 DIST_NAME = $(PACKAGE)-$(VERSION)
-UIM_REPOSITORY = http://uim.googlecode.com/svn
-LIBGCROOTS_REPOSITORY = $(UIM_REPOSITORY)/libgcroots-trunk
-TAGS_REPOSITORY = $(UIM_REPOSITORY)/tags
-#RELEASE_URL     = $(LIBGCROOTS_REPOSITORY)
-RELEASE_URL     = $(TAGS_REPOSITORY)/$(DIST_NAME)
+UIM_REPOSITORY = http://uim.googlecode.com/git/
+#RELEASE_TAG     = master
+RELEASE_TAG     = $(DIST_NAME)
 DIST_SUM_LIST = $(DIST_NAME).sum
 
 ## FIXME: `make distcheck' in this directory will not currently work.
@@ -242,9 +240,12 @@ DISTCLEANFILES = gcroots.pc gnuify-changelog.pl
 .PHONY: FORCE sum
 FORCE:
 
+# We use `wget' instead of `git archive' here
+# because `git archive' doesn't work with Google Code Git repository.
 ChangeLog: FORCE
-	svn export $(UIM_REPOSITORY)/trunk/tools/gnuify-changelog.pl
-	svn log $(RELEASE_URL) | ./gnuify-changelog.pl > $@
+	wget $(UIM_REPOSITORY)/tools/gnuify-changelog.pl
+	git log --date-order --date=short $(RELEASE_TAG) \
+	    | perl ./gnuify-changelog.pl > $@
 	@test -s $@ && echo 'ChangeLog updated successfully.'
 
 sum: FORCE
