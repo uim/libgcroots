@@ -113,6 +113,9 @@ libgcroots_la_SOURCES = mark.c gcroots.c
 #libgc_la_DEPENDENCIES = @addobjs@
 #libgc_la_LDFLAGS = $(extra_ldflags_libgc) -version-info 1:3:0 -no-undefined
 
+# Regenerate mach_dep.lo when config.status is updated
+@addobjs@: $(top_builddir)/config.status
+
 #EXTRA_libgc_la_SOURCES = alpha_mach_dep.S \
 #    mips_sgi_mach_dep.s mips_ultrix_mach_dep.s \
 #    rs6000_mach_dep.s sparc_mach_dep.S sparc_netbsd_mach_dep.s \
