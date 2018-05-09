@@ -22,7 +22,6 @@ include libtool-version.mk
 # $(distdir) does work as a part of $(RELEASE_URL) when configured as a
 # subpackage.
 DIST_NAME = $(PACKAGE)-$(VERSION)
-UIM_REPOSITORY = https://raw.github.com/uim/uim/master
 #RELEASE_TAG     = master
 RELEASE_TAG     = $(DIST_NAME)
 DIST_SUM_LIST = $(DIST_NAME).sum
@@ -232,7 +231,7 @@ CONFIG_STATUS_DEPENDENCIES = $(srcdir)/configure.host
 #
 #EXTRA_DIST += libtool.m4
 
-DISTCLEANFILES = gcroots.pc gnuify-changelog.pl
+DISTCLEANFILES = gcroots.pc
 
 #
 # :GOTCHA: GNU make rule for making .s out of .S is flawed, 
@@ -243,22 +242,9 @@ DISTCLEANFILES = gcroots.pc gnuify-changelog.pl
 .PHONY: FORCE sum
 FORCE:
 
-# We use `wget' instead of `git archive' here
-# because `git archive' doesn't work with Google Code Git repository.
-ChangeLog: FORCE
-	wget $(UIM_REPOSITORY)/tools/gnuify-changelog.pl
-	git log --date-order --date=short $(RELEASE_TAG) \
-	    | perl ./gnuify-changelog.pl > $@
-	@test -s $@ && echo 'ChangeLog updated successfully.'
-
 sum: FORCE
 	$(MD5) $(DIST_ARCHIVES) >$(DIST_SUM_LIST)
 	$(SHA1) $(DIST_ARCHIVES) >>$(DIST_SUM_LIST)
-
-distclean-local:
-	if test '$(top_srcdir)' != '$(top_builddir)'; then      \
-	    rm -f ChangeLog;                                    \
-	fi
 
 #include include/include.am
 #include cord/cord.am
