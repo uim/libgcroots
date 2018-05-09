@@ -21,7 +21,7 @@
  * case, a few declarations relying on types declared in gc_priv.h will be
  * omitted.
  */
- 
+
 #ifndef GCCONFIG_H
 
 # define GCCONFIG_H
@@ -68,6 +68,10 @@
 #      define NOSYS
 #      define mach_type_known
 #    endif
+# endif
+# if defined(__aarch64__) 
+#    define AARCH64
+#    define mach_type_known
 # endif
 # if defined(sun) && defined(mc68000)
 #    error SUNOS4 no longer supported
@@ -505,6 +509,7 @@
                     /*             S390       ==> 390-like machine      */
 		    /*                  running LINUX                   */
 		    /* 		   ARM32      ==> Intel StrongARM	*/
+        	    /*             AARCH64    ==> ARMv8 AArch64         */
 		    /* 		   IA64	      ==> Intel IPF		*/
 		    /*				  (e.g. Itanium)	*/
 		    /*			(LINUX and HPUX)	        */
@@ -1723,6 +1728,41 @@
 #   define GETPAGESIZE() 4096
 #   endif
 # endif
+
+# ifdef AARCH64
+#   define CPP_WORDSZ 64
+#   define MACH_TYPE "AARCH64"
+#   define ALIGNMENT 8
+#   ifdef LINUX
+#       define OS_TYPE "LINUX"
+#       define LINUX_STACKBOTTOM
+#       undef STACK_GRAN
+#       define STACK_GRAN 0x10000000
+#       ifdef __ELF__
+#            define DYNAMIC_LOADING
+#            include <features.h>
+#            if defined(__GLIBC__) && __GLIBC__ >= 2
+#                define SEARCH_FOR_DATA_START
+#            else
+                 extern char **__environ;
+#                define DATASTART ((ptr_t)(&__environ))
+                              /* hideous kludge: __environ is the first */
+                              /* word in crt0.o, and delimits the start */
+                              /* of the data segment, no matter which   */
+                              /* ld options were passed through.        */
+                              /* We could use _etext instead, but that  */
+                              /* would include .rodata, which may       */
+                              /* contain large read-only data tables    */
+                              /* that we'd rather not scan.             */
+#            endif
+             extern int _end[];
+#            define DATAEND (_end)
+#       else
+             extern int etext[];
+#            define DATASTART ((ptr_t)((((word) (etext)) + 0xfff) & ~0xfff))
+#       endif
+#   endif
+# endif 
 
 # ifdef ARM32
 #   define CPP_WORDSZ 32
