@@ -257,4 +257,5 @@ sum: FORCE
 # Putting these at the top causes cord to be built first, and not find libgc.a
 # on HP/UX.  There may be a better fix.
 
-
+tag:
+	git tag -a -m "$(VERSION) has been released!!!" $(VERSION)
