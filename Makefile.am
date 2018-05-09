@@ -19,6 +19,8 @@
 
 include libtool-version.mk
 
+ACLOCAL_AMFLAGS = -I m4
+
 # $(distdir) does work as a part of $(RELEASE_URL) when configured as a
 # subpackage.
 DIST_NAME = $(PACKAGE)-$(VERSION)
