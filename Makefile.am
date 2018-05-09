@@ -259,3 +259,4 @@ sum: FORCE
 
 tag:
 	git tag -a -m "$(VERSION) has been released!!!" $(VERSION)
+	git push --tags
