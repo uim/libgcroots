@@ -63,6 +63,8 @@ pkgconfig_DATA = gcroots.pc
 # C Library
 # ---------
 
+AM_CPPFLAGS = $(GCROOTS_CPPFLAGS)
+
 #lib_LTLIBRARIES += libgc.la
 #libgc_la_SOURCES = \
 #	allchblk.c alloc.c blacklst.c checksums.c dbg_mlc.c \

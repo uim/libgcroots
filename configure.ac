@@ -102,7 +102,7 @@ dnl AC_ARG_ENABLE(cplusplus,
 dnl     [AC_HELP_STRING([--enable-cplusplus], [install C++ support])])
 enable_cplusplus=no
 
-INCLUDES=-I${srcdir}/include
+GCROOTS_CPPFLAGS=-I${srcdir}/include
 THREADDLLIBS=
 need_atomic_ops_asm=false
 ## Libraries needed to support dynamic loading and/or threads.
@@ -150,11 +150,11 @@ case "$THREADS" in
      *-*-freebsd*)
 	AC_MSG_WARN("FreeBSD does not yet fully support threads with Boehm GC.")
 	AC_DEFINE(GC_FREEBSD_THREADS)
-	INCLUDES="$INCLUDES -pthread"
+	GCROOTS_CPPFLAGS="$GCROOTS_CPPFLAGS -pthread"
       	;;
      *-*-kfreebsd*-gnu)
 	AC_DEFINE(GC_FREEBSD_THREADS)
-	INCLUDES="$INCLUDES -pthread"
+	GCROOTS_CPPFLAGS="$GCROOTS_CPPFLAGS -pthread"
 	THREADDLLIBS=-pthread
 	AC_DEFINE(_REENTRANT)
         if test "${enable_parallel_mark}" = yes; then
@@ -210,7 +210,7 @@ case "$THREADS" in
 	  # May want to enable it in other cases, too.
 	  # Measurements havent yet been done.
 	fi
-	INCLUDES="$INCLUDES -pthread"
+	GCROOTS_CPPFLAGS="$GCROOTS_CPPFLAGS -pthread"
 	THREADDLLIBS="-lpthread -lrt"
 	;;
       *)
@@ -236,7 +236,7 @@ case "$THREADS" in
     AC_DEFINE(GC_DGUX386_THREADS)
     AC_DEFINE(DGUX_THREADS)
     # Enable _POSIX4A_DRAFT10_SOURCE with flag -pthread
-    INCLUDES="-pthread $INCLUDES"
+    GCROOTS_CPPFLAGS="-pthread $GCROOTS_CPPFLAGS"
     ;;
  aix)
     THREADS=posix
@@ -251,6 +251,7 @@ case "$THREADS" in
     AC_MSG_ERROR($THREADS is an unknown thread package)
     ;;
 esac
+AC_SUBST(GCROOTS_CPPFLAGS)
 AC_SUBST(THREADDLLIBS)
 AM_CONDITIONAL(THREADS, test x$THREADS != xnone)
 AM_CONDITIONAL(PTHREADS, test x$THREADS = xposix)
@@ -374,7 +375,6 @@ AM_CONDITIONAL(CPLUSPLUS, test "${enable_cplusplus}" = yes)
 
 AC_SUBST(CXX)
 
-AC_SUBST(INCLUDES)
 AC_SUBST(CXXINCLUDES)
 
 # Since glibc has a stub implementation of getcontext(3), AX_FUNC_GETCONTEXT
