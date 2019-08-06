@@ -479,6 +479,10 @@
 #   define NONSTOP
 #   define mach_type_known
 # endif
+# if defined(__riscv) && defined(LINUX)
+#   define RISCV
+#   define mach_type_known
+# endif
 
 /* Feel free to add more clauses here */
 
@@ -1318,6 +1322,19 @@
 #      define NO_PTHREAD_TRYLOCK
 #   endif /* DARWIN */
 # endif
+
+# ifdef RISCV
+#   define MACH_TYPE "RISC-V"
+#   define CPP_WORDSZ __riscv_xlen /* 32 or 64 */
+#   define ALIGNMENT (CPP_WORDSZ/8)
+#   ifdef LINUX
+#     define OS_TYPE "LINUX"
+      extern int __data_start[];
+#     define DATASTART ((ptr_t)__data_start)
+#     define LINUX_STACKBOTTOM
+#     define DYNAMIC_LOADING
+#   endif
+# endif /* RISCV */
 
 # ifdef NS32K
 #   define MACH_TYPE "NS32K"
