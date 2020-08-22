@@ -8,5 +8,5 @@ set -eux
 make distcheck
 make sum
 
-mv *.tar.* *.sum /source/
+sudo -H mv *.tar.* *.sum /source/
 
