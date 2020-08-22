@@ -1,0 +1,36 @@
+name: Linux
+on:
+  - push
+  - pull_request
+jobs:
+  test:
+    name: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - debian-10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies to generate configure
+        run: |
+          sudo apt update
+          sudo apt install -y -V \
+            autoconf \
+            libtool
+      - name: Generate configure
+        run: |
+          ./autogen.sh
+      - name: Build Docker image
+        run: |
+          docker-compose build ${{ matrix.image }}
+      - name: Run Docker image
+        run: |
+          docker-compose run ${{ matrix.image }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.image }}
+          path: |
+            *.tar.*
+            *.sum

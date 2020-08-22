@@ -1,3 +1,5 @@
+/*.sum
+/*.tar.*
 /.deps/
 /.libs/
 /ChangeLog
@@ -19,6 +21,7 @@
 /libgcroots.la
 /libtool
 /ltmain.sh
+/m4/
 /m4/Makefile
 /m4/Makefile.in
 /mach_dep.lo
@@ -26,3 +29,4 @@
 /mark.lo
 /mark.o
 /missing
+/test-driver
