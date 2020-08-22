@@ -68,8 +68,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: libgcroots-${{ steps.tag.outputs.name }}.gz
-          asset_name: libgcroots-${{ steps.tag.outputs.name }}.gz
+          asset_path: libgcroots-${{ steps.tag.outputs.name }}.tar.gz
+          asset_name: libgcroots-${{ steps.tag.outputs.name }}.tar.gz
           asset_content_type: application/gzip
       - uses: actions/upload-release-asset@v1
         if: |
@@ -78,8 +78,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: libgcroots-${{ steps.tag.outputs.name }}.bz2
-          asset_name: libgcroots-${{ steps.tag.outputs.name }}.bz2
+          asset_path: libgcroots-${{ steps.tag.outputs.name }}.tar.bz2
+          asset_name: libgcroots-${{ steps.tag.outputs.name }}.tar.bz2
           asset_content_type: application/x-bzip2
       - uses: actions/upload-release-asset@v1
         if: |
