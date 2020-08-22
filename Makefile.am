@@ -47,7 +47,8 @@ SUBDIRS =
 SUBDIRS += m4
 
 # Initialize variables so that we can declare files locally.
-EXTRA_DIST = 
+EXTRA_DIST =
+DISTCLEANFILES =
 lib_LTLIBRARIES =
 include_HEADERS =
 pkginclude_HEADERS =
@@ -59,6 +60,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 #dist_pkgconfig_DATA = bdw-gc.pc
 EXTRA_DIST += gcroots.pc.in
 pkgconfig_DATA = gcroots.pc
+DISTCLEANFILES += gcroots.pc
 
 # C Library
 # ---------
@@ -222,6 +224,7 @@ dist_noinst_SCRIPTS = configure.host
 #    Mac_files/MacOS_config.h Mac_files/MacOS_Test_config.h \
 #    include/private/msvc_dbg.h msvc_dbg.c
 EXTRA_DIST += mach_dep.c
+DISTCLEANFILES += ./$(DEPDIR)/mach_dep.Plo
 
 # The libatomic_ops library.  This is not ideal, since we pick up junk from
 # there.  The hard-coded version number should also go.
@@ -234,8 +237,6 @@ CONFIG_STATUS_DEPENDENCIES = $(srcdir)/configure.host
 # :FIXME: why do we distribute this one???
 #
 #EXTRA_DIST += libtool.m4
-
-DISTCLEANFILES = gcroots.pc
 
 #
 # :GOTCHA: GNU make rule for making .s out of .S is flawed, 
