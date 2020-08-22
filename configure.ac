@@ -45,6 +45,7 @@ AC_CHECK_TOOL(RANLIB, ranlib, :)  # :)
 AC_PROG_INSTALL
 AC_PATH_PROGS(MD5, md5 md5sum)
 AC_PATH_PROGS(SHA1, sha1 sha1sum)
+AC_PATH_PROGS(SHA256, sha256 sha256sum)
 
 . ${srcdir}/configure.host
 

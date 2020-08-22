@@ -34,3 +34,60 @@ jobs:
           path: |
             *.tar.*
             *.sum
+
+      # Release
+      - name: Extract tag
+        if: |
+          startsWith(github.ref, 'refs/tags/') && matrix.image == 'debian-10'
+        id: tag
+        run: |
+          tag=$(echo ${{ github.ref }} | sed -e 's,^refs/tags/,,')
+          echo ::set-output name=name::${tag}
+      - uses: actions/setup-ruby@v1
+        if: |
+          startsWith(github.ref, 'refs/tags/') && matrix.image == 'debian-10'
+      - name: Extract the news for the current release
+        if: |
+          startsWith(github.ref, 'refs/tags/') && matrix.image == 'debian-10'
+        run: |
+          ruby extract-news.rb ${{ steps.tag.outputs.name }} | tee news-current.md
+      - uses: actions/create-release@v1
+        if: |
+          startsWith(github.ref, 'refs/tags/') && matrix.image == 'debian-10'
+        id: create-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ steps.tag.outputs.name }}
+          body_path: news-current.md
+      - uses: actions/upload-release-asset@v1
+        if: |
+          startsWith(github.ref, 'refs/tags/') && matrix.image == 'debian-10'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: libgcroots-${{ steps.tag.outputs.name }}.gz
+          asset_name: libgcroots-${{ steps.tag.outputs.name }}.gz
+          asset_content_type: application/gzip
+      - uses: actions/upload-release-asset@v1
+        if: |
+          startsWith(github.ref, 'refs/tags/') && matrix.image == 'debian-10'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: libgcroots-${{ steps.tag.outputs.name }}.bz2
+          asset_name: libgcroots-${{ steps.tag.outputs.name }}.bz2
+          asset_content_type: application/x-bzip2
+      - uses: actions/upload-release-asset@v1
+        if: |
+          startsWith(github.ref, 'refs/tags/') && matrix.image == 'debian-10'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: libgcroots-${{ steps.tag.outputs.name }}.sum
+          asset_name: libgcroots-${{ steps.tag.outputs.name }}.sum
+          asset_content_type: text/plain
