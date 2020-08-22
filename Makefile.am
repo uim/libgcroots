@@ -259,5 +259,5 @@ sum: FORCE
 # on HP/UX.  There may be a better fix.
 
 tag:
-	git tag -a -m "$(VERSION) has been released!!!" $(VERSION)
-	git push --tags
+	cd "$(srcdir)" && git tag -a -m "$(VERSION) has been released!!!" $(VERSION)
+	cd "$(srcdir)" && git push --tags
