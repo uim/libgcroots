@@ -250,6 +250,7 @@ FORCE:
 sum: FORCE
 	$(MD5) $(DIST_ARCHIVES) >$(DIST_SUM_LIST)
 	$(SHA1) $(DIST_ARCHIVES) >>$(DIST_SUM_LIST)
+	$(SHA256) $(DIST_ARCHIVES) >>$(DIST_SUM_LIST)
 
 #include include/include.am
 #include cord/cord.am
