@@ -483,6 +483,10 @@
 #   define RISCV
 #   define mach_type_known
 # endif
+# if defined(__loongarch__)
+#   define LOONGARCH
+#   define mach_type_known
+# endif
 
 /* Feel free to add more clauses here */
 
@@ -1335,6 +1339,19 @@
 #     define DYNAMIC_LOADING
 #   endif
 # endif /* RISCV */
+
+# ifdef LOONGARCH
+#   define MACH_TYPE   "LOONGARCH64"
+#   define CPP_WORDSZ  __loongarch_grlen /* 32 or 64 */
+#   define ALIGNMENT   (CPP_WORDSZ/8)
+#   ifdef LINUX
+#     define OS_TYPE "LINUX"
+      extern int __data_start[];
+#     define DATASTART ((ptr_t)__data_start)
+#     define LINUX_STACKBOTTOM
+#     define DYNAMIC_LOADING
+#   endif
+# endif /* LOONGARCH */
 
 # ifdef NS32K
 #   define MACH_TYPE "NS32K"
