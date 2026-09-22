@@ -56,6 +56,8 @@ dist_noinst_HEADERS =
 check_PROGRAMS =
 TESTS =
 
+EXTRA_DIST += autogen.sh
+
 pkgconfigdir = $(libdir)/pkgconfig
 #dist_pkgconfig_DATA = bdw-gc.pc
 EXTRA_DIST += gcroots.pc.in
