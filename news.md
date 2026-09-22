@@ -1,5 +1,17 @@
 # News
 
+## 0.3.3 - 2026-09-22
+
+### Improvements
+
+  * Added missing `autogen.sh` to archive.
+    * [uim/uim#342](https://github.com/uim/uim/issues/342)
+    * Reported by NOKUBI Takatsugu
+
+### Thanks
+
+  * NOKUBI Takatsugu
+
 ## 0.3.2 - 2020-08-23
 
 ### Improvements
