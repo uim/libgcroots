@@ -33,7 +33,7 @@ jobs:
       - name: Run Docker image
         run: |
           docker compose run ${{ matrix.image }}
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.image }}
           path: |
