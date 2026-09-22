@@ -1,0 +1,8 @@
+services:
+  debian-13:
+    image: uim/libgcroots-debian-13
+    build:
+      context: ci/dockerfiles
+      dockerfile: debian-13.dockerfile
+    volumes:
+      - .:/source:delegated
