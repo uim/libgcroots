@@ -1,5 +1,11 @@
 # News
 
+## 0.3.4 - 2026-10-06
+
+### Improvements
+
+  * Added support for Meson.
+
 ## 0.3.3 - 2026-09-22
 
 ### Improvements
