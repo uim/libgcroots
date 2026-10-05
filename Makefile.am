@@ -56,7 +56,10 @@ dist_noinst_HEADERS =
 check_PROGRAMS =
 TESTS =
 
+EXTRA_DIST += Rakefile
 EXTRA_DIST += autogen.sh
+EXTRA_DIST += meson.build
+EXTRA_DIST += meson_options.txt
 
 pkgconfigdir = $(libdir)/pkgconfig
 #dist_pkgconfig_DATA = bdw-gc.pc
@@ -260,7 +263,3 @@ sum: FORCE
 #include doc/doc.am
 # Putting these at the top causes cord to be built first, and not find libgc.a
 # on HP/UX.  There may be a better fix.
-
-tag:
-	cd "$(srcdir)" && git tag -a -m "$(VERSION) has been released!!!" $(VERSION)
-	cd "$(srcdir)" && git push --tags

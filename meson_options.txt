@@ -1,0 +1,4 @@
+option('gc_assertions',
+       type: 'boolean',
+       value: false,
+       description: 'collector-internal assertion checking')

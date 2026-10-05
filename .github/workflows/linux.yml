@@ -33,6 +33,9 @@ jobs:
       - name: Run Docker image
         run: |
           docker compose run ${{ matrix.image }}
+      - name: Build with Meson
+        run: |
+          docker compose run ${{ matrix.image }} /source/ci/meson.sh
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.image }}
