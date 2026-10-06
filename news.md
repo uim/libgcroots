@@ -1,5 +1,11 @@
 # News
 
+## 0.3.5 - 2026-10-06
+
+### Improvements
+
+  * Meson: Changed the default values to adjust Meson style.
+
 ## 0.3.4 - 2026-10-06
 
 ### Improvements
