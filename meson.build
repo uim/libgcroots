@@ -1,14 +1,10 @@
 project('libgcroots',
         'c',
         version: '0.3.5',
-        meson_version: '>=0.61.0',
-        default_options: [
-          'buildtype=debugoptimized',
-          # libtool builds both of shared and static libraries by default.
-          'default_library=both',
-        ])
+        meson_version: '>=0.61.0')
 
 fs = import('fs')
+pkgconfig = import('pkgconfig')
 
 cc = meson.get_compiler('c')
 host_cpu = host_machine.cpu()
@@ -66,9 +62,8 @@ if host_cpu == 'mipstx39'
   c_args += ['-G', '0']
 endif
 
+# -Wall and -pedantic are controlled by Meson's warning_level option.
 c_args += cc.get_supported_arguments([
-  '-pedantic',
-  '-Wall',
   '-Wchar-subscripts',
   '-Wmissing-declarations',
   '-Wredundant-decls',
@@ -186,25 +181,7 @@ meson.override_dependency('gcroots', libgcroots_dep)
 
 install_headers('include/gcroots.h')
 
-# Use the same template as configure.
-prefix = get_option('prefix')
-pc_conf = configuration_data()
-pc_conf.set('prefix', prefix)
-pc_conf.set('exec_prefix', '${prefix}')
-libdir = get_option('libdir')
-if fs.is_absolute(libdir)
-  pc_conf.set('libdir', libdir)
-else
-  pc_conf.set('libdir', '${exec_prefix}' / libdir)
-endif
-includedir = get_option('includedir')
-if fs.is_absolute(includedir)
-  pc_conf.set('includedir', includedir)
-else
-  pc_conf.set('includedir', '${prefix}' / includedir)
-endif
-pc_conf.set('PACKAGE_VERSION', meson.project_version())
-configure_file(input: 'gcroots.pc.in',
-               output: 'gcroots.pc',
-               configuration: pc_conf,
-               install_dir: libdir / 'pkgconfig')
+pkgconfig.generate(libgcroots,
+                   description: 'Architecture-dependent part of GC roots acquisition separated from Boehm GC',
+                   filebase: 'gcroots',
+                   name: 'libgcroots')
