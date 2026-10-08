@@ -30,9 +30,9 @@
 # include "private/gc_priv.h"
 
 /* Single argument version, robust against whole program analysis. */
+static volatile word GC_noop_sink;
+
 void GC_noop1(word x)
 {
-    static volatile word sink;
-
-    sink = x;
+    GC_noop_sink = x;
 }
