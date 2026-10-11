@@ -1,6 +1,6 @@
 project('libgcroots',
         'c',
-        version: '0.3.6',
+        version: '0.3.7',
         meson_version: '>=0.61.0')
 
 fs = import('fs')
