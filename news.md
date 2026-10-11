@@ -1,5 +1,11 @@
 # News
 
+## 0.3.6 - 2026-10-11
+
+### Improvements
+
+  * Suppressed a `unused-but-set-variable` warning.
+
 ## 0.3.5 - 2026-10-06
 
 ### Improvements
