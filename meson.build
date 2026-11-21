@@ -1,7 +1,13 @@
 project('libgcroots',
         'c',
         version: '0.3.8',
-        meson_version: '>=0.61.0')
+        license: 'Boehm-GC',
+        license_files: ['COPYING'],
+        default_options: [
+          # The same as the default --docdir of configure.
+          'licensedir=share/doc/libgcroots',
+        ],
+        meson_version: '>=1.1.0')
 
 fs = import('fs')
 pkgconfig = import('pkgconfig')
