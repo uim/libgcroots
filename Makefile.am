@@ -67,10 +67,10 @@ EXTRA_DIST += gcroots.pc.in
 pkgconfig_DATA = gcroots.pc
 DISTCLEANFILES += gcroots.pc
 
-# License
-# -------
+# Documents
+# ---------
 
-dist_doc_DATA = COPYING
+dist_doc_DATA = COPYING README
 
 # C Library
 # ---------

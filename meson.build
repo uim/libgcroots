@@ -187,6 +187,11 @@ meson.override_dependency('gcroots', libgcroots_dep)
 
 install_headers('include/gcroots.h')
 
+# The same as the default --docdir of configure. COPYING is installed
+# by license_files of project().
+install_data('README',
+             install_dir: get_option('datadir') / 'doc' / meson.project_name())
+
 pkgconfig.generate(libgcroots,
                    description: 'Architecture-dependent part of GC roots acquisition separated from Boehm GC',
                    filebase: 'gcroots',
