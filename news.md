@@ -1,5 +1,16 @@
 # News
 
+## 0.3.7 - 2026-11-22
+
+### Improvements
+
+  * Installed `COPYING` and `README` to `share/doc/libgcroots/` by
+    default.
+    * configure: Use `--docdir` to change the directory.
+    * Meson: Use `-Dlicensedir` to change the directory of `COPYING`.
+
+  * Meson: Required Meson 1.1.0 or later.
+
 ## 0.3.6 - 2026-10-11
 
 ### Improvements
