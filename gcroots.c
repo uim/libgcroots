@@ -28,6 +28,10 @@
 #include <sanitizer/asan_interface.h>
 #endif
 
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+#include <valgrind/memcheck.h>
+#endif
+
 #ifdef THREADS
 #error "threaded configuration is not supported (yet)"
 #endif
@@ -171,12 +175,25 @@ static void
 find_obj(void *start, void *end, int is_certain, int is_aligned)
 {
     void **p;
+    void *obj;
     int offset;
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+    int on_valgrind = RUNNING_ON_VALGRIND;
+#endif
 
     offset = 0;
     do {
         for (p = (void **)start + offset; p < (void **)end; p++) {
-            if (*p == findee) {
+            obj = *p;
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+            /* The stack has uninitialized locations. Valgrind reports
+             * a use of an uninitialized value for them. Only the copy
+             * is marked as defined not to hide uninitialized values
+             * of other code. */
+            if (on_valgrind)
+                VALGRIND_MAKE_MEM_DEFINED(&obj, sizeof(obj));
+#endif
+            if (obj == findee) {
                 found = TRUE;
                 return;
             }

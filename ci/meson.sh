@@ -8,6 +8,7 @@ meson setup \
   /source
 meson compile -C /tmp/meson-build
 meson test -C /tmp/meson-build --print-errorlogs
+meson test -C /tmp/meson-build --print-errorlogs --setup=valgrind
 meson install -C /tmp/meson-build
 
 meson setup \

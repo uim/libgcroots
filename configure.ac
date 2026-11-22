@@ -386,6 +386,10 @@ AC_SUBST(CXXINCLUDES)
 # AX_FUNC_GETCONTEXT
 AC_CHECK_FUNCS([getcontext])
 
+# For suppressing false positives of Valgrind on the conservative stack
+# scan. This is optional. Valgrind isn't needed at run time.
+AC_CHECK_HEADERS([valgrind/memcheck.h])
+
 # Configuration of shared libraries
 #
 AC_MSG_CHECKING(whether to build shared libraries)

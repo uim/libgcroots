@@ -56,6 +56,14 @@ if cc.has_function('getcontext')
   c_args += ['-DHAVE_GETCONTEXT=1']
 endif
 
+# valgrind/memcheck.h is for suppressing false positives of Valgrind
+# on the conservative stack scan. Valgrind isn't needed at run time.
+valgrind_c_args = []
+if cc.has_header('valgrind/memcheck.h', required: get_option('valgrind'))
+  valgrind_c_args += ['-DHAVE_VALGRIND_MEMCHECK_H=1']
+endif
+c_args += valgrind_c_args
+
 if get_option('gc_assertions')
   c_args += ['-DGC_ASSERTIONS=1']
 endif
@@ -194,6 +202,7 @@ install_data('README',
 
 test_gcroots = executable('test-gcroots',
                           'test/test-gcroots.c',
+                          c_args: valgrind_c_args,
                           dependencies: [libgcroots_dep],
                           install: false)
 if 'address' in get_option('b_sanitize')
@@ -213,6 +222,17 @@ if 'address' in get_option('b_sanitize')
   endforeach
 else
   test('gcroots', test_gcroots)
+endif
+
+# meson test --setup=valgrind
+valgrind = find_program('valgrind', required: get_option('valgrind'))
+if valgrind.found()
+  add_test_setup('valgrind',
+                 exe_wrapper: [
+                   valgrind,
+                   '--error-exitcode=1',
+                   '--leak-check=full',
+                 ])
 endif
 
 pkgconfig.generate(libgcroots,

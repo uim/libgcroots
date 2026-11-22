@@ -3,6 +3,10 @@
 
 #include <gcroots.h>
 
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+#  include <valgrind/memcheck.h>
+#endif
+
 #if defined(__SANITIZE_ADDRESS__)
 #  define ADDRESS_SANITIZER 1
 #elif defined(__has_feature)
@@ -35,17 +39,24 @@ static void *target;
 static int n_found;
 
 /* A mark procedure scans the stack conservatively. So it must not be
- * instrumented by AddressSanitizer. */
+ * instrumented by AddressSanitizer. The stack has uninitialized
+ * locations. So a copy of them must be marked as defined for
+ * Valgrind. */
 NO_SANITIZE_ADDRESS
 static void
 mark(void *start, void *end, int is_certain, int is_aligned)
 {
     void **p;
+    void *obj;
 
     (void)is_certain;
     (void)is_aligned;
     for (p = (void **)start; p < (void **)end; p++) {
-        if (*p == target)
+        obj = *p;
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+        VALGRIND_MAKE_MEM_DEFINED(&obj, sizeof(obj));
+#endif
+        if (obj == target)
             n_found++;
     }
 }

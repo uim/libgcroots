@@ -2,3 +2,8 @@ option('gc_assertions',
        type: 'boolean',
        value: false,
        description: 'collector-internal assertion checking')
+
+option('valgrind',
+       type: 'feature',
+       value: 'auto',
+       description: 'suppressing false positives of Valgrind')

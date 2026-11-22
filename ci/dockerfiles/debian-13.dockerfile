@@ -19,7 +19,8 @@ RUN \
     ninja-build \
     pkg-config \
     sudo \
-    tzdata && \
+    tzdata \
+    valgrind && \
   apt clean && \
   rm -rf /var/lib/apt/lists/*
 
