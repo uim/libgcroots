@@ -1,8 +1,6 @@
-libgcroots
-==========
+# libgcroots
 
-About
------
+## About
 
 This library abstracts architecture-dependent part of garbage collector
 roots acquisition such as register windows of SPARC and register stack
@@ -14,14 +12,12 @@ or to test experimental ideas.
 
 See this page for latest information.
 
-  http://code.google.com/p/sigscheme/wiki/libgcroots
+http://code.google.com/p/sigscheme/wiki/libgcroots
 
-
-Implementation Status
----------------------
+## Implementation Status
 
 This version only supports non-threaded execution contexts started with
-GCROOTS_call_with_gc_ready_stack(). i.e. Entire stack is not scanned at
+`GCROOTS_call_with_gc_ready_stack()`. i.e. Entire stack is not scanned at
 mark phase.
 
 Since SigScheme the main application of this library does not need both
@@ -30,84 +26,88 @@ stack bottom, I don't have a plan to support these features. If you need
 them, please port the appropriate codes from Boehm GC. I would like to
 merge it.
 
-
-AddressSanitizer
-----------------
+## AddressSanitizer
 
 libgcroots 0.3.8 or later can be built and used with AddressSanitizer:
 
-  meson setup -Db_sanitize=address build
+```bash
+meson setup -Db_sanitize=address build
+```
 
-or:
+`-Db_lundef=false` is also needed with Clang.
 
-  ./configure CFLAGS="-g -O2 -fsanitize=address"
+You can also use `configure`:
 
-Your mark procedure passed to GCROOTS_init() must not be instrumented by
+```bash
+./configure CFLAGS="-g -O2 -fsanitize=address"
+```
+
+Your mark procedure passed to `GCROOTS_init()` must not be instrumented by
 AddressSanitizer because it scans stack conservatively and the stack has
 red zones of AddressSanitizer between local variables:
 
-  __attribute__((no_sanitize_address))
-  static void
-  mark(void *start, void *end, int is_certain, int is_aligned)
-  {
-      /* Scan from start to end. */
-  }
+```c
+__attribute__((no_sanitize_address))
+static void
+mark(void *start, void *end, int is_certain, int is_aligned)
+{
+    /* Scan from start to end. */
+}
+```
 
-Use __declspec(no_sanitize_address) instead with MSVC.
+Use `__declspec(no_sanitize_address)` instead with MSVC.
 
 AddressSanitizer may place local variables in a fake stack (heap) instead
-of the real stack. For example, detect_stack_use_after_return=1 in
-ASAN_OPTIONS enables it. libgcroots also passes frames in the fake stack
+of the real stack. For example, `detect_stack_use_after_return=1` in
+`ASAN_OPTIONS` enables it. libgcroots also passes frames in the fake stack
 to your mark procedure. So you don't need to care about it.
 
-
-Valgrind
---------
+## Valgrind
 
 The stack has uninitialized locations such as unused slots and paddings.
 Valgrind reports a use of an uninitialized value when they are used by
 stack scan.
 
 libgcroots 0.3.9 or later suppresses the reports in libgcroots itself
-when libgcroots is built with valgrind/memcheck.h. It's used by default
+when libgcroots is built with `valgrind/memcheck.h`. It's used by default
 if it exists. Valgrind isn't needed at run time. You can require it with
 Meson:
 
-  meson setup -Dvalgrind=enabled build
+```bash
+meson setup -Dvalgrind=enabled build
+```
 
 But libgcroots can't suppress the reports in your mark procedure passed
-to GCROOTS_init(). Your mark procedure needs to copy a value in the stack
+to `GCROOTS_init()`. Your mark procedure needs to copy a value in the stack
 and mark only the copy as defined. It doesn't hide uninitialized values
 of other code:
 
-  #include <valgrind/memcheck.h>
+```c
+#include <valgrind/memcheck.h>
 
-  static void
-  mark(void *start, void *end, int is_certain, int is_aligned)
-  {
-      void **p;
-      void *obj;
+static void
+mark(void *start, void *end, int is_certain, int is_aligned)
+{
+    void **p;
+    void *obj;
 
-      for (p = start; p < (void **)end; p++) {
-          obj = *p;
-          VALGRIND_MAKE_MEM_DEFINED(&obj, sizeof(obj));
-          /* Use obj not *p. */
-      }
-  }
+    for (p = start; p < (void **)end; p++) {
+        obj = *p;
+        VALGRIND_MAKE_MEM_DEFINED(&obj, sizeof(obj));
+        /* Use obj not *p. */
+    }
+}
+```
 
-See also test/test-gcroots.c.
+See also [`test/test-gcroots.c`](test/test-gcroots.c).
 
+## Author
 
-Author
-------
+YAMAMOTO Kengo / YamaKen <yamaken AT bp.iij4u.or.jp>
 
-YAMAMOTO Kengo / YamaKen  <yamaken AT bp.iij4u.or.jp>
-FAMILY   Given / Nick
-http://en.wikipedia.org/wiki/Japanese_name
+FAMILY Given / Nick: http://en.wikipedia.org/wiki/Japanese_name
 
-
-Thanks
-------
+## Thanks
 
 Hans-J. Boehm and all authors of Boehm GC for the useful codes.
 

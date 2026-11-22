@@ -197,7 +197,7 @@ install_headers('include/gcroots.h')
 
 # The same as the default --docdir of configure. COPYING is installed
 # by license_files of project().
-install_data('README',
+install_data('README.md',
              install_dir: get_option('datadir') / 'doc' / meson.project_name())
 
 test_gcroots = executable('test-gcroots',

@@ -70,7 +70,7 @@ DISTCLEANFILES += gcroots.pc
 # Documents
 # ---------
 
-dist_doc_DATA = COPYING README
+dist_doc_DATA = COPYING README.md
 
 # C Library
 # ---------
