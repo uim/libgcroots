@@ -1,6 +1,6 @@
 project('libgcroots',
         'c',
-        version: '0.3.9',
+        version: '0.4.0',
         license: 'Boehm-GC',
         license_files: ['COPYING'],
         default_options: [
