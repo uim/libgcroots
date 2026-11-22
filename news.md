@@ -1,5 +1,23 @@
 # News
 
+## 0.3.9 - 2026-11-22
+
+### Improvements
+
+  * Suppressed false positives of Valgrind on stack scan. It's enabled
+    when `valgrind/memcheck.h` exists on build. Valgrind isn't needed
+    at run time.
+    * configure: `valgrind/memcheck.h` is detected automatically.
+    * Meson: Use `-Dvalgrind=enabled` to require it.
+    * You need to mark a copy of a value in stack as defined in your
+      mark procedure that is passed to `GCROOTS_init()`. See "Valgrind"
+      in `README.md`.
+
+  * Renamed `README` to `README.md`. The installed file name is also
+    changed.
+
+  * Added how to use with AddressSanitizer and Valgrind to `README.md`.
+
 ## 0.3.8 - 2026-11-22
 
 ### Improvements
