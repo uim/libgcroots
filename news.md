@@ -1,5 +1,14 @@
 # News
 
+## 0.3.8 - 2026-11-22
+
+### Improvements
+
+  * Added support for AddressSanitizer.
+    * You need to add `__attribute__((no_sanitize_address))` to your
+      mark procedure that is passed to `GCROOTS_init()` because it
+      scans stack.
+
 ## 0.3.7 - 2026-11-22
 
 ### Improvements
