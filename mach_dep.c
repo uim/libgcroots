@@ -167,6 +167,9 @@ void GC_push_regs()
 /* Ensure that either registers are pushed, or callee-save registers	*/
 /* are somewhere on the stack, and then call fn(arg, ctxt).		*/
 /* ctxt is either a pointer to a ucontext_t we generated, or NULL.	*/
+/* Saved registers must be in the real stack not AddressSanitizer's	*/
+/* fake stack.								*/
+GCROOTS_NO_SANITIZE_ADDRESS
 void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
 				 ptr_t arg)
 {

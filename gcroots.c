@@ -24,6 +24,10 @@
 #define EXTRA_CONTEXT_IN_REGS
 #endif
 
+#ifdef GCROOTS_ADDRESS_SANITIZER
+#include <sanitizer/asan_interface.h>
+#endif
+
 #ifdef THREADS
 #error "threaded configuration is not supported (yet)"
 #endif
@@ -92,6 +96,8 @@ GCROOTS_fin(GCROOTS_context *ctx)
     /* Nothing to do for this implementation. Caller must free ctx. */
 }
 
+/* stack_top must be in the real stack. */
+GCROOTS_NO_SANITIZE_ADDRESS
 void *
 GCROOTS_call_with_gc_ready_stack(GCROOTS_context *ctx,
                                  GCROOTS_user_proc proc, void *arg)
@@ -159,6 +165,8 @@ GCROOTS_is_protected(GCROOTS_context *ctx, void *obj)
 }
 
 /* thread unsafe */
+/* This scans stack. */
+GCROOTS_NO_SANITIZE_ADDRESS
 static void
 find_obj(void *start, void *end, int is_certain, int is_aligned)
 {
@@ -183,7 +191,40 @@ find_obj(void *start, void *end, int is_certain, int is_aligned)
  * Substitution functions for original Boehm GC
  */
 
+#ifdef GCROOTS_ADDRESS_SANITIZER
+/*
+ * AddressSanitizer may place local variables in a fake stack (heap)
+ * instead of the real stack with detect_stack_use_after_return=1. A
+ * frame in the fake stack is referred from the real stack. So we find
+ * them by scanning the real stack and mark them too.
+ */
+GCROOTS_NO_SANITIZE_ADDRESS
+static void
+mark_fake_frames(GCROOTS_context *ctx, void **start, void **end)
+{
+    void *fake_stack;
+    void **p;
+    void *fake_start, *fake_end;
+    void *last_fake_start = NULL;
+
+    fake_stack = __asan_get_current_fake_stack();
+    if (!fake_stack)
+        return;
+
+    for (p = start; p < end; p++) {
+        if (__asan_addr_is_in_fake_stack(fake_stack, *p,
+                                         &fake_start, &fake_end)
+            && fake_start != last_fake_start) {
+            (*ctx->mark)(fake_start, fake_end, FALSE, TRUE);
+            last_fake_start = fake_start;
+        }
+    }
+}
+#endif
+
 /* mark immediately despite the name 'push_current_stack' */
+/* stack_top must be in the real stack. */
+GCROOTS_NO_SANITIZE_ADDRESS
 void
 GC_push_current_stack(ptr_t cold_gc_frame, void *context)
 {
@@ -198,8 +239,14 @@ GC_push_current_stack(ptr_t cold_gc_frame, void *context)
 
 #ifdef STACK_GROWS_DOWN
     (*ctx->mark)(&stack_top + 1, ctx->stack_base, FALSE, FALSE);
+#  ifdef GCROOTS_ADDRESS_SANITIZER
+    mark_fake_frames(ctx, (void **)(&stack_top + 1), (void **)ctx->stack_base);
+#  endif
 #else
     (*ctx->mark)((word *)ctx->stack_base + 1, &stack_top, FALSE, FALSE);
+#  ifdef GCROOTS_ADDRESS_SANITIZER
+    mark_fake_frames(ctx, (void **)ctx->stack_base + 1, (void **)&stack_top);
+#  endif
 #endif
 
 #ifdef IA64

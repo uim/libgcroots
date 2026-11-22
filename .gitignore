@@ -30,3 +30,11 @@
 /mark.o
 /missing
 /test-driver
+/test-suite.log
+/test/.deps/
+/test/.dirstamp
+/test/.libs/
+/test/test-gcroots
+/test/test-gcroots.log
+/test/test-gcroots.o
+/test/test-gcroots.trs

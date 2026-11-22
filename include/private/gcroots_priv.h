@@ -32,6 +32,34 @@ extern "C" {
 #define GC_with_callee_saves_pushed GCROOTS_with_callee_saves_pushed
 #define GC_noop1                    GCROOTS_noop1
 
+/* AddressSanitizer support:
+ *
+ * GCROOTS_NO_SANITIZE_ADDRESS is for functions that:
+ *
+ *   * scan stack conservatively: AddressSanitizer reports reading
+ *     redzones in stack as an error.
+ *   * have a local variable that must be placed in the real stack:
+ *     AddressSanitizer may place local variables in a fake stack
+ *     (heap) with detect_stack_use_after_return=1.
+ */
+#if defined(__SANITIZE_ADDRESS__)
+#  define GCROOTS_ADDRESS_SANITIZER 1
+#elif defined(__has_feature)
+#  if __has_feature(address_sanitizer)
+#    define GCROOTS_ADDRESS_SANITIZER 1
+#  endif
+#endif
+
+#ifdef GCROOTS_ADDRESS_SANITIZER
+#  if defined(_MSC_VER) && !defined(__clang__)
+#    define GCROOTS_NO_SANITIZE_ADDRESS __declspec(no_sanitize_address)
+#  else
+#    define GCROOTS_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#  endif
+#else
+#  define GCROOTS_NO_SANITIZE_ADDRESS
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -99,6 +99,14 @@ dist_noinst_HEADERS += \
 lib_LTLIBRARIES += libgcroots.la
 libgcroots_la_SOURCES = mark.c gcroots.c
 
+# Test
+# ----
+
+check_PROGRAMS += test/test-gcroots
+test_test_gcroots_SOURCES = test/test-gcroots.c
+test_test_gcroots_LDADD = libgcroots.la
+TESTS += test/test-gcroots
+
 # C Library: Architecture Dependent
 # ---------------------------------
 

@@ -192,6 +192,29 @@ install_headers('include/gcroots.h')
 install_data('README',
              install_dir: get_option('datadir') / 'doc' / meson.project_name())
 
+test_gcroots = executable('test-gcroots',
+                          'test/test-gcroots.c',
+                          dependencies: [libgcroots_dep],
+                          install: false)
+if 'address' in get_option('b_sanitize')
+  # AddressSanitizer places local variables in a fake stack instead of
+  # the real stack with detect_stack_use_after_return=1. We need to
+  # test both cases.
+  foreach value : ['0', '1']
+    asan_options = [
+      'abort_on_error=1',
+      'detect_stack_use_after_return=' + value,
+      'halt_on_error=1',
+      'print_summary=1',
+    ]
+    test('gcroots-detect-stack-use-after-return-' + value,
+         test_gcroots,
+         env: {'ASAN_OPTIONS': ':'.join(asan_options)})
+  endforeach
+else
+  test('gcroots', test_gcroots)
+endif
+
 pkgconfig.generate(libgcroots,
                    description: 'Architecture-dependent part of GC roots acquisition separated from Boehm GC',
                    filebase: 'gcroots',
